@@ -51,7 +51,7 @@ export default function About() {
               Turning complex ideas into elegant, high-performance mobile experiences. I believe great software is a seamless blend of robust architecture and pixel-perfect design.
             </motion.p>
 
-            <div className="flex flex-col w-full mt-16 lg:mt-[240px]">
+            <div className="flex flex-col w-full mt-16 lg:mt-[210px]">
               <div className="border-t border-line pt-10">
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-1.5 h-1.5 bg-accent rounded-full" />

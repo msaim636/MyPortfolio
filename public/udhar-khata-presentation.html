@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>
+  :root{
+    --green:#07583D; --green-deep:#075E3E; --green-btn:#07583D;
+    --green-light:#E4F1EC; --green-wash:#E3F3EC; --green-tint:rgba(5,84,47,.15);
+    --red:#EF3F42; --red-strong:#FF2E12; --red-wash:#FDE9E6; --red-tint:rgba(252,120,102,.20);
+    --gray-text:#6B7280; --gray-border:#B9C0BC; --bg:#F7F9F8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:0; width:1200px; height:800px; overflow:hidden;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    display:flex; align-items:center; justify-content:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    position:relative;
+  }
+  .glow-1 {
+    position:absolute; width:600px; height:600px; background:#07583D;
+    border-radius:50%; filter:blur(100px); opacity:0.3; top:-200px; left:-100px;
+  }
+  .glow-2 {
+    position:absolute; width:400px; height:400px; background:#EF3F42;
+    border-radius:50%; filter:blur(120px); opacity:0.15; bottom:-100px; right:-50px;
+  }
+  .glow-3 {
+    position:absolute; width:300px; height:300px; background:#d4af37;
+    border-radius:50%; filter:blur(80px); opacity:0.1; top:200px; right:100px;
+  }
+  
+  .presentation-container {
+    display:flex; align-items:center; justify-content:center;
+    width:100%; height:100%; position:relative; z-index:10;
+    perspective: 1000px;
+  }
+
+  .device-layer {
+    display: none;
+  }
+  .device-layer.shadow {
+    background: #d4af37; border: 1px solid #c5a017;
+    box-shadow: -40px 60px 120px rgba(0,30,10,0.2);
+  }
+  .device{
+      width:390px; height:844px; background:#131315; border-radius:48px; border: 2px solid #333;
+      padding:10px; position:relative; flex-shrink:0;
+      transform: scale(0.82);
+      box-shadow: 0 0 0 4px #e6c875, 0 30px 60px rgba(0,0,0,0.12);
+  }
+  .device::after {
+    content:''; position:absolute; inset:0; border-radius:48px;
+    border:1px solid rgba(255,255,255,0.15); pointer-events:none; z-index:100;
+  }
+  .screen-stack{
+    width:100%; height:100%; background:var(--bg); border-radius:34px; overflow:hidden; position:relative;
+  }
+  .notch{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    width:120px; height:26px; background:#131315; border-radius:0 0 16px 16px; z-index:50;
+  }
+  .screen{
+    position:absolute; inset:0; overflow:hidden;
+  }
+  .statusbar{ display:flex; justify-content:space-between; padding:16px 24px 0; font-size:14px; font-weight:600; }
+  .statusbar.white{ color:#fff; }
+  .green-wash-bg{
+    background:linear-gradient(to bottom, var(--green) 0%, rgba(255,255,255,0) 55%), var(--bg);
+  }
+  .h1{ font-size:30px; font-weight:800; color:#fff; margin:6px 0 0; }
+  .card{ background:#fff; border-radius:16px;  }
+  .khata-row{
+    display:flex; align-items:center; gap:12px; background:#fff; border-radius:18px; padding:14px;
+     margin-bottom:10px;
+  }
+  .avatar{
+    width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:18px; flex-shrink:0;
+  }
+  .navbar{
+    position:absolute; bottom:16px; left:12px; right:12px; height:64px; background:#fff;
+    border:1px solid #E3ECE8; border-radius:22px; 
+    display:flex; align-items:center; justify-content:space-around; z-index:30;
+  }
+  .navitem{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 18px; }
+  .navitem .ic{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .navitem.active .ic{ background:var(--green-light); color:var(--green); }
+  .navitem:not(.active) .ic{ color:#79857F; }
+  .navitem span{ font-size:10px; color:#79857F; }
+  .navitem.active span{ color:var(--green); font-weight:600; }
+  .fab{
+    position:absolute; bottom:52px; left:50%; transform:translateX(-50%); width:56px; height:56px;
+    border-radius:50%; background:var(--green); border:4px solid #fff; 
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:24px; z-index:31;
+  }
+</style>
+</head>
+<body>
+
+
+
+
+<div class="presentation-container">
+  <div class="device">
+                <div class="device-layer" style="transform: translateZ(-3px)"></div>
+    <div class="device-layer" style="transform: translateZ(-6px)"></div>
+    <div class="device-layer" style="transform: translateZ(-9px)"></div>
+    <div class="device-layer" style="transform: translateZ(-12px)"></div>
+    <div class="device-layer" style="transform: translateZ(-15px)"></div>
+    <div class="device-layer shadow" style="transform: translateZ(-18px)"></div>
+    <div class="notch"></div>
+    <div class="screen-stack">
+      <!-- HOME SCREEN -->
+      <section class="screen green-wash-bg" style="opacity:1; pointer-events:auto; z-index:10;">
+        <div class="statusbar white"><span>9:41</span><span>▮▮▮ 100%</span></div>
+        <div style="padding:16px 24px 0;">
+          <h1 class="h1">Udhaar Khata</h1>
+        </div>
+        <div class="card" style="margin:14px 24px 0; padding:18px;">
+          <p style="text-align:center; font-weight:800; color:var(--green); font-size:18px; margin:0 0 14px;">Total Hisab</p>
+          <div style="display:flex; gap:10px;">
+            <div style="flex:1; background:var(--green-tint); border-radius:14px; padding:12px; text-align:center;">
+              <div style="font-size:12px; font-weight:700; color:var(--green);">Total Lena</div>
+              <div style="font-size:16px; font-weight:800; color:var(--green); margin-top:4px;">PKR 18,500</div>
+            </div>
+            <div style="flex:1; background:var(--red-tint); border-radius:14px; padding:12px; text-align:center;">
+              <div style="font-size:12px; font-weight:700; color:var(--red-strong);">Total Dena</div>
+              <div style="font-size:16px; font-weight:800; color:var(--red-strong); margin-top:4px;">PKR 7,200</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:22px 24px 10px;">
+          <span style="font-size:15px; font-weight:700;">Your customers</span>
+          <span style="font-size:11px; font-weight:700; color:var(--green);">All records</span>
+        </div>
+        <div style="padding:0 24px 150px;">
+          
+          <div class="khata-row">
+            <div class="avatar" style="background:var(--green-wash); color:var(--green);">A</div>
+            <div style="flex:1;">
+              <div style="font-weight:700; font-size:15px;">Ahmed Traders</div>
+              <div style="font-size:12px; color:var(--gray-text); margin-top:2px;">You will receive · PKR 12,000</div>
+            </div>
+            <div style="color:#80918A; font-size:20px;">›</div>
+          </div>
+          
+          <div class="khata-row">
+            <div class="avatar" style="background:var(--red-wash); color:#C7473D;">B</div>
+            <div style="flex:1;">
+              <div style="font-weight:700; font-size:15px;">Bilal Hardware</div>
+              <div style="font-size:12px; color:var(--gray-text); margin-top:2px;">You will pay · PKR 7,200</div>
+            </div>
+            <div style="color:#80918A; font-size:20px;">›</div>
+          </div>
+          
+          <div class="khata-row">
+            <div class="avatar" style="background:var(--green-wash); color:var(--green);">S</div>
+            <div style="flex:1;">
+              <div style="font-weight:700; font-size:15px;">Sana Fabrics</div>
+              <div style="font-size:12px; color:var(--gray-text); margin-top:2px;">You will receive · PKR 6,500</div>
+            </div>
+            <div style="color:#80918A; font-size:20px;">›</div>
+          </div>
+          
+        </div>
+        
+        <div class="navbar">
+          <div class="navitem active"><div class="ic">⌂</div><span>Home</span></div>
+          <div class="navitem"><div class="ic">☺</div><span>Profile</span></div>
+        </div>
+        <div class="fab">＋</div>
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+

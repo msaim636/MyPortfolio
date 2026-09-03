@@ -1,0 +1,38 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>
+  body {
+    margin:0; padding:0; width:1200px; height:800px; overflow:hidden;
+    background: transparent;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .frame {
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+    transform: scale(3.5) translateY(10px);
+  }
+  .screen-container {
+    position: absolute;
+    z-index: 5;
+    width: 390px;
+    height: 844px;
+    background: red;
+    border-radius: 40px;
+    transform: translate(5px, 35px) rotateY(-22deg) rotateX(15deg) rotateZ(5deg) scale(0.65);
+    transform-style: preserve-3d;
+  }
+</style>
+</head>
+<body>
+  <div class="screen-container">
+     <div style="width:100%; height:100%; background:green; border-radius:40px;"></div>
+  </div>
+  <img src="../temp-screenshot/phone-frame.png" class="frame" />
+</body>
+</html>

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StoreFlow — Interactive Prototype (Source-Accurate)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&family=Material+Icons+Round&display=swap" rel="stylesheet">
+<style>
+  /* ===== Colors pulled directly from theme.dart (AppColors) ===== */
+  :root{
+    --primary:#2F6F4E;
+    --primary-dark:#1F4D36;
+    --primary-light:#E7F3EC;
+    --accent:#E2733A;
+    --accent-dark:#C15C28;
+    --bg:#FAF8F4;
+    --surface:#FFFFFF;
+    --text:#2B2A27;
+    --text-secondary:#6B6A63;
+    --text-muted:#9B9A91;
+    --border:#E7E3D9;
+    --danger:#C0392B;
+    --danger-light:#FBEAE8;
+    --success:#2F7A4D;
+    --success-light:#E7F3EC;
+    --warning:#C77D18;
+    --warning-light:#FDF1E0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  
+  .icon{font-family:'Material Icons Round';font-weight:normal;font-style:normal;font-size:22px;line-height:1;display:inline-block;white-space:nowrap;}
+  
+  .screen-wrap{width:100%; height:100%; background:var(--bg); border-radius:32px; overflow:hidden; position:relative; display:flex; flex-direction:column;}
+  .notch{position:absolute; top:12px; left:50%; transform:translateX(-50%); width:120px; height:24px; background:#000; border-radius:14px; z-index:50;}
+
+  .appbar{background:#fff; padding:14px 8px; padding-top:32px; display:flex; align-items:center; gap:6px; flex-shrink:0; border-bottom:1px solid var(--border);}
+  .appbar .icon{color:var(--text); cursor:pointer; padding:6px;}
+  .appbar h1{font-size:18px; font-weight:700; color:var(--text); flex:1; text-align:center;}
+  .appbar.centered h1{margin-right:34px;}
+
+  .content{flex:1; overflow-y:auto; padding:16px; padding-bottom:24px;}
+  .content::-webkit-scrollbar{width:0;}
+
+  .page-header{display:flex; align-items:center; margin-bottom:14px;}
+  .ph-icon{width:40px; height:40px; border-radius:10px; background:var(--primary-light); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .ph-icon .icon{color:var(--primary); font-size:22px;}
+  .ph-icon.accentbg{background:#FDEDE3;} .ph-icon.accentbg .icon{color:var(--accent);}
+  .ph-icon.dangerbg{background:var(--danger-light);} .ph-icon.dangerbg .icon{color:var(--danger);}
+  .ph-text{margin-left:12px; flex:1;}
+  .ph-title{font-size:17px; font-weight:800; color:var(--text);}
+  .ph-sub{font-size:12px; color:var(--text-secondary); margin-top:2px;}
+  .pro-badge{background:linear-gradient(90deg,#FFC107,#FF9800); color:#fff; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; display:flex; align-items:center; gap:4px; letter-spacing:.3px;}
+  .pro-badge .icon{font-size:14px; color:#fff;}
+
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px;}
+  .card.rounded12{border-radius:12px;}
+
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;}
+  .stat-card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:0 4px 10px rgba(0,0,0,.02);}
+  .stat-card .row1{display:flex; align-items:center; gap:8px;}
+  .stat-card .row1 .icon{font-size:20px;}
+  .stat-card .label{font-size:13px; font-weight:600; color:var(--text-secondary);}
+  .stat-card .value{font-size:24px; font-weight:900; color:var(--text); margin-top:8px;}
+
+  .section-title{font-size:20px; font-weight:800; color:var(--text); margin:0 0 12px;}
+  .subsection-title{font-size:16px; font-weight:800; color:var(--text); margin-bottom:10px;}
+
+  .badge{font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; display:inline-block;}
+  .badge.danger{background:var(--danger-light); color:var(--danger);}
+  .badge.success{background:var(--success-light); color:var(--success);}
+  .badge.warning{background:var(--warning-light); color:var(--warning);}
+  .badge.primary{background:var(--primary-light); color:var(--primary);}
+  .badge.pill{border-radius:20px;}
+
+  .btn{display:block; width:100%; text-align:center; padding:12px; border-radius:8px; border:none; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit;}
+  .btn.primary{background:var(--primary); color:#fff;}
+  .btn.accent{background:var(--accent); color:#fff;}
+  .btn.success{background:var(--success); color:#fff;}
+  .btn.outline{background:#fff; border:1.5px solid var(--border); color:var(--text-secondary);}
+  .btn.outline.warn{border-color:var(--warning); color:var(--warning);}
+  .btn.outline.danger{border-color:var(--danger); color:var(--danger);}
+  .btn-row{display:flex; gap:8px;}
+  .btn-row .btn{flex:1;}
+  .btn-sm{width:auto; padding:6px 12px; font-size:12px;}
+  .link-btn{color:var(--primary); font-weight:700; font-size:12px; background:none; border:none; cursor:pointer; font-family:inherit;}
+  .link-btn.danger{color:var(--danger);}
+
+  .input-group{margin-bottom:12px;}
+  .input-group label{font-size:13px; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:6px;}
+  .input-group input, .input-group select{
+    width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid var(--border); font-size:14px; font-family:inherit; background:var(--surface); color:var(--text);
+  }
+  .input-group input:focus, .input-group select:focus{outline:none; border-color:var(--primary);}
+  .input-group input:disabled{background:var(--surface); color:var(--text-secondary);}
+
+  .row-flex{display:flex; justify-content:space-between; align-items:center;}
+  .divider{height:1px; background:var(--border); margin:10px 0;}
+
+  .fab-extended{position:absolute; bottom:22px; right:18px; background:var(--primary); color:#fff; border-radius:20px; padding:14px 20px; display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; box-shadow:0 8px 18px rgba(47,111,78,.4); cursor:pointer; z-index:20;}
+
+  .drawer-backdrop{position:absolute; inset:0; background:rgba(0,0,0,.4); z-index:30; display:none;}
+  .drawer-backdrop.show{display:block;}
+  .drawer{position:absolute; top:0; left:-290px; width:290px; height:100%; background:#fff; z-index:31; transition:left .25s ease; overflow-y:auto; box-shadow:2px 0 20px rgba(0,0,0,.15);}
+  .drawer.open{left:0;}
+  .drawer-header{padding:34px 16px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center;}
+  .drawer-avatar{width:42px; height:42px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; flex-shrink:0;}
+  .drawer-header .dh-text{margin-left:12px; flex:1; min-width:0;}
+  .dh-business{font-size:16px; font-weight:800; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .dh-name{font-size:12px; color:var(--text-secondary);}
+  .drawer-header .icon{color:var(--danger); cursor:pointer;}
+  .drawer-item{display:flex; align-items:center; gap:14px; padding:12px 18px; font-size:14px; font-weight:500; color:var(--text-secondary); cursor:pointer;}
+  .drawer-item.active{background:var(--primary-light); color:var(--primary); font-weight:700;}
+  .drawer-item .icon{font-size:20px;}
+  .drawer-item.active .icon{color:var(--primary);}
+
+  .sheet-backdrop{position:absolute; inset:0; background:rgba(0,0,0,.45); z-index:40; display:none; align-items:flex-end;}
+  .sheet-backdrop.show{display:flex;}
+  .sheet{background:var(--bg); width:100%; border-radius:20px 20px 0 0; padding:0 0 20px; max-height:85%; overflow-y:auto;}
+  .sheet-handle{width:40px; height:4px; background:var(--border); border-radius:4px; margin:12px auto;}
+  .sheet-title{font-size:18px; font-weight:800; padding:0 20px 10px; color:var(--text);}
+
+  .dialog-backdrop{position:absolute; inset:0; background:rgba(0,0,0,.45); z-index:45; display:none; align-items:center; justify-content:center; padding:24px;}
+  .dialog-backdrop.show{display:flex;}
+  .dialog{background:#fff; border-radius:16px; padding:20px; width:100%;}
+  .dialog h3{font-size:16px; margin-bottom:8px; color:var(--text);}
+  .dialog p{font-size:13px; color:var(--text-secondary); margin-bottom:16px; line-height:1.4;}
+
+  .screen{display:none;}
+  .screen.active{display:block; height:100%;}
+  .screen-body{height:100%; display:flex; flex-direction:column;}
+
+  .tabbar{display:flex; border-bottom:1px solid var(--border); background:#fff;}
+  .tab{flex:1; text-align:center; padding:10px 4px; font-size:12px; font-weight:700; color:var(--text-secondary); cursor:pointer; border-bottom:3px solid transparent;}
+  .tab.active{color:var(--primary); border-bottom-color:var(--primary);}
+
+  .search-box{display:flex; align-items:center; gap:8px; background:var(--surface); border:1.5px solid var(--border); border-radius:8px; padding:8px 12px; margin-bottom:12px;}
+  .search-box input{border:none; flex:1; font-size:13px; font-family:inherit; background:transparent;}
+  .search-box .icon{color:var(--text-muted); font-size:18px;}
+
+  .center-msg{text-align:center; color:var(--text-muted); font-size:13px; padding:24px 10px;}
+  .toast{position:absolute; bottom:24px; left:50%; transform:translateX(-50%); background:#222; color:#fff; padding:10px 18px; border-radius:8px; font-size:13px; z-index:60; opacity:0; transition:opacity .25s; pointer-events:none; white-space:nowrap;}
+  .toast.show{opacity:1;}
+
+  /* login hero */
+  .auth-hero{background:var(--primary); border-radius:0 0 36px 36px; padding:0 0 22px; text-align:center; flex-shrink:0;}
+  .auth-hero .circle-outer{width:84px; height:84px; border-radius:50%; background:rgba(255,255,255,.18); margin:14px auto 0; display:flex; align-items:center; justify-content:center;}
+  .auth-hero .circle-inner{width:64px; height:64px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center;}
+  .auth-hero .circle-inner .icon{color:var(--primary); font-size:36px;}
+  .auth-hero h1{color:#fff; font-size:23px; font-weight:800; margin-top:8px;}
+  .cat-badges{display:flex; justify-content:center; gap:10px; margin-top:12px;}
+  .cat-badge{width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center;}
+  .cat-badge .icon{color:#fff; font-size:17px;}
+
+  /* bars for reports/sales chart */
+  .bars-row{display:flex; align-items:flex-end; gap:4px; height:140px;}
+  .bar-col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+  .bar-fill{width:65%; background:var(--primary); border-radius:3px; min-height:4px;}
+  .bar-label{font-size:9px; color:var(--text-muted); margin-top:4px;}
+
+  .hbar-row{display:flex; align-items:center; margin-bottom:10px; gap:8px;}
+  .hbar-name{width:85px; font-size:12px; font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .hbar-track{flex:1; height:10px; background:var(--bg); border-radius:5px; overflow:hidden;}
+  .hbar-fill{height:100%; background:var(--primary); border-radius:5px;}
+  .hbar-val{width:26px; font-size:12px; color:var(--text-secondary); text-align:right;}
+
+  .pay-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .pay-track{height:8px; background:var(--bg); border-radius:4px; overflow:hidden; margin-top:6px;}
+  .pay-fill{height:100%; border-radius:4px;}
+
+  .chip-row{display:flex; gap:8px; overflow-x:auto; margin-bottom:12px; padding-bottom:2px;}
+  .chip{flex-shrink:0; padding:7px 13px; border-radius:20px; font-size:12px; font-weight:600; background:#fff; border:1.5px solid var(--border); color:var(--text); cursor:pointer;}
+  .chip.active{background:var(--primary); color:#fff; border-color:var(--primary);}
+  body{
+    margin:0; padding:0; width:1200px; height:800px; overflow:hidden;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    display:flex; align-items:center; justify-content:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    position:relative;
+  }
+  .presentation-container {
+    display:flex; align-items:center; justify-content:center;
+    width:100%; height:100%; position:relative; z-index:10;
+    perspective: 1000px;
+  }
+  .device-layer {
+    display: none;
+  }
+  .device-layer.shadow {
+    background: #d4af37; border: 1px solid #c5a017;
+    box-shadow: -40px 60px 120px rgba(0,30,10,0.2);
+  }
+  .phone{
+      width:390px; height:844px; background:#131315; border-radius:48px; border: 2px solid #333;
+      padding:10px; position:relative; flex-shrink:0;
+      transform: scale(0.82);
+      box-shadow: 0 0 0 4px #e6c875, 0 30px 60px rgba(0,0,0,0.12);
+  }
+  .phone::after {
+    content:''; position:absolute; inset:0; border-radius:48px;
+    border:1px solid rgba(255,255,255,0.15); pointer-events:none; z-index:100;
+  }
+</style>
+</head>
+<body>
+
+<div class="presentation-container">
+  <div class="phone">
+    <div class="device-layer" style="transform: translateZ(-3px)"></div>
+    <div class="device-layer" style="transform: translateZ(-6px)"></div>
+    <div class="device-layer" style="transform: translateZ(-9px)"></div>
+    <div class="device-layer" style="transform: translateZ(-12px)"></div>
+    <div class="device-layer shadow" style="transform: translateZ(-15px)"></div>
+    <div class="notch"></div>
+    <div class="screen-wrap">
+
+    <!-- ============ LOGIN (matches login_screen.dart + auth_hero_banner.dart) ============ -->
+    <div class="screen" id="scr-login">
+      <div class="screen-body">
+        <div class="auth-hero">
+          <div style="padding-top:14px;">
+            <div class="circle-outer"><div class="circle-inner"><span class="icon">shopping_cart</span></div></div>
+            <h1>StoreFlow</h1>
+            <div class="cat-badges">
+              <div class="cat-badge"><span class="icon">shopping_basket</span></div>
+              <div class="cat-badge"><span class="icon">restaurant</span></div>
+              <div class="cat-badge"><span class="icon">brush</span></div>
+              <div class="cat-badge"><span class="icon">coffee</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="content">
+          <div style="text-align:center; font-size:21px; font-weight:800; color:var(--text);">Welcome back</div>
+          <div style="text-align:center; font-size:14px; color:var(--text-secondary); margin-top:4px; margin-bottom:20px;">Sign in to continue to StoreFlow</div>
+          <div class="input-group"><label>Email</label><input id="login-email" placeholder="you@example.com"></div>
+          <div class="input-group">
+            <label>Password</label><input id="login-pass" type="password" placeholder="••••••••">
+            <div style="text-align:right; margin-top:4px;"><button class="link-btn" style="color:var(--text-secondary);" onclick="toast('Reset code sent if email exists')">Forgot password?</button></div>
+          </div>
+          <div id="login-error" style="display:none; color:var(--danger); font-size:13px; margin-bottom:10px;">User doesn't exist or invalid password.</div>
+          <button class="btn primary" onclick="doLogin()">Login</button>
+          <div style="text-align:center; margin-top:18px; font-size:14px; color:var(--text-secondary);">New business? <span style="color:var(--primary); font-weight:700; cursor:pointer;" onclick="toast('Register screen')">Register here</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DASHBOARD ============ -->
+    <div class="screen active" id="scr-dashboard">
+      <div class="appbar centered"><span class="icon" onclick="openDrawer()">menu</span><h1>StoreFlow</h1></div>
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon"><span class="icon">dashboard</span></div>
+          <div class="ph-text"><div class="ph-title">Dashboard</div><div class="ph-sub">Store Overview</div></div>
+          <div class="pro-badge"><span class="icon">star</span>PRO</div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card"><div class="row1"><span class="icon" style="color:var(--success);">attach_money</span><span class="label">Today's Sales</span></div><div class="value">Rs 48,200</div></div>
+          <div class="stat-card"><div class="row1"><span class="icon" style="color:var(--primary);">shopping_bag</span><span class="label">Orders Today</span></div><div class="value">32</div></div>
+          <div class="stat-card"><div class="row1"><span class="icon" style="color:var(--danger);">warning</span><span class="label">Low Stock Items</span></div><div class="value">7</div></div>
+          <div class="stat-card"><div class="row1"><span class="icon" style="color:var(--text-secondary);">people</span><span class="label">Active Workers</span></div><div class="value">3</div></div>
+        </div>
+
+        <div class="card rounded12" style="background:var(--warning-light); border:none; margin-bottom:20px;">
+          <div class="subsection-title" style="color:var(--text); margin-bottom:12px;">Pending Approvals</div>
+          <div class="card" style="margin-bottom:0;">
+            <div class="row-flex" style="margin-bottom:6px;"><b style="font-size:14px;">Order #1042</b></div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-bottom:2px;">Bilal Traders</div>
+            <div style="font-size:12px; color:var(--text-muted); font-style:italic; margin-bottom:10px;">Completed by Usman Ali</div>
+            <div class="btn-row">
+              <button class="btn outline warn btn-sm" style="flex:1;" onclick="toast('Marked pay later')">Pay Later</button>
+              <button class="btn success btn-sm" style="flex:1;" onclick="toast('Order marked paid')">Paid</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Recent Completed Orders</div>
+        <div class="card"><div class="row-flex"><b style="font-size:14px;">Order #1041</b><span style="color:var(--primary); font-weight:800;">Rs 3,200</span></div><div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Sana Fabrics</div></div>
+        <div class="card"><div class="row-flex"><b style="font-size:14px;">Order #1040</b><span style="color:var(--primary); font-weight:800;">Rs 8,900</span></div><div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">Ahmed Traders</div></div>
+      </div>
+      <div class="fab-extended" onclick="openSheet('new-order-sheet')"><span class="icon">add</span>New Order</div>
+    </div>
+
+    <!-- ============ SALES REPORT (matches sales_screen.dart) ============ -->
+    <div class="screen" id="scr-sales">
+      <div class="appbar"><span class="icon" onclick="go('dashboard')">arrow_back</span><h1 style="text-align:left; margin-right:0;">Sales Report</h1></div>
+      <div class="content">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="row1"><span class="icon" style="color:#2196F3;">calendar_today</span><span class="label">Today</span></div><div class="value" style="font-size:18px;">Rs 6,400</div></div>
+          <div class="stat-card"><div class="row1"><span class="icon" style="color:#FF9800;">date_range</span><span class="label">This Week</span></div><div class="value" style="font-size:18px;">Rs 38,900</div></div>
+          <div class="stat-card"><div class="row1"><span class="icon" style="color:#9C27B0;">event_note</span><span class="label">This Month</span></div><div class="value" style="font-size:18px;">Rs 2,41,000</div></div>
+          <div class="stat-card"><div class="row1"><span class="icon" style="color:#4CAF50;">account_balance_wallet</span><span class="label">All Time</span></div><div class="value" style="font-size:18px;">Rs 18,42,500</div></div>
+        </div>
+        <div class="subsection-title">Last 7 Days Sales</div>
+        <div class="card" style="height:220px;">
+          <svg viewBox="0 0 300 150" style="width:100%; height:100%;">
+            <polyline points="10,110 55,95 100,60 145,80 190,50 235,30 280,15" fill="none" stroke="#2F6F4E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <polygon points="10,110 55,95 100,60 145,80 190,50 235,30 280,15 280,150 10,150" fill="#2F6F4E" opacity="0.1"/>
+            <circle cx="10" cy="110" r="3.5" fill="#2F6F4E"/><circle cx="55" cy="95" r="3.5" fill="#2F6F4E"/><circle cx="100" cy="60" r="3.5" fill="#2F6F4E"/>
+            <circle cx="145" cy="80" r="3.5" fill="#2F6F4E"/><circle cx="190" cy="50" r="3.5" fill="#2F6F4E"/><circle cx="235" cy="30" r="3.5" fill="#2F6F4E"/><circle cx="280" cy="15" r="3.5" fill="#2F6F4E"/>
+          </svg>
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin-top:4px;">
+            <span>6d</span><span>5d</span><span>4d</span><span>3d</span><span>2d</span><span>1d</span><span>Today</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ QUEUE & APPROVALS (matches owner_queue_screen.dart) ============ -->
+    <div class="screen" id="scr-queue">
+      <div class="appbar"><span class="icon" onclick="openDrawer()">menu</span><h1>Queue & Approvals</h1></div>
+      <div class="tabbar">
+        <div class="tab active" onclick="setQueueTab(this,'active')">ACTIVE</div>
+        <div class="tab" onclick="setQueueTab(this,'approvals')">PENDING APPROVALS</div>
+        <div class="tab" onclick="setQueueTab(this,'cancelled')">CANCELLED</div>
+      </div>
+      <div class="content">
+        <div class="search-box"><span class="icon">search</span><input placeholder="Search by customer or order #"></div>
+
+        <div id="queue-active">
+          <div class="card">
+            <div class="row-flex" style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px;">
+              <div style="display:flex; align-items:center; gap:8px;"><b>Order #1043</b><span class="badge danger">URGENT</span></div>
+              <span class="badge pill" style="background:rgba(47,111,78,.15); color:var(--primary);">PICKING</span>
+            </div>
+            <div class="row-flex"><span style="font-weight:600; font-size:14px;">Customer: Walk-in</span><span style="font-weight:800; color:var(--primary);">Rs 1,240</span></div>
+            <div class="row-flex" style="margin-top:6px; font-size:13px; color:var(--text-secondary);"><span>Items: 3</span><span>Worker: Usman Ali</span></div>
+            <button class="btn outline" style="margin-top:12px;" onclick="toast('Reassign worker')">Change Assigned Worker</button>
+          </div>
+          <div class="card">
+            <div class="row-flex" style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px;">
+              <b>Order #1044</b>
+              <span class="badge pill" style="background:rgba(226,115,58,.15); color:var(--accent);">PLACED</span>
+            </div>
+            <div class="row-flex"><span style="font-weight:600; font-size:14px;">Customer: Bilal Hardware</span><span style="font-weight:800; color:var(--primary);">Rs 380</span></div>
+            <div class="row-flex" style="margin-top:6px; font-size:13px; color:var(--text-secondary);"><span>Items: 1</span><span>Worker: Unassigned</span></div>
+            <button class="btn primary" style="margin-top:12px;" onclick="openSheet('assign-worker-sheet')">Assign to Worker</button>
+          </div>
+        </div>
+
+        <div id="queue-approvals" style="display:none;">
+          <div class="card">
+            <div class="row-flex" style="border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px;">
+              <b>Order #1041</b>
+              <span class="badge pill" style="background:rgba(47,122,77,.15); color:var(--success);">COMPLETED</span>
+            </div>
+            <div class="row-flex"><span style="font-weight:600; font-size:14px;">Customer: Sana Fabrics</span><span style="font-weight:800; color:var(--primary);">Rs 3,200</span></div>
+            <div class="btn-row" style="margin-top:12px;">
+              <button class="btn outline warn" onclick="toast('Marked pay later')">Pay Later</button>
+              <button class="btn success" onclick="toast('Order marked paid')">Mark Paid</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="queue-cancelled" style="display:none;">
+          <div class="center-msg">No orders found.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ITEMS (matches items_screen.dart) ============ -->
+    <div class="screen" id="scr-items">
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon"><span class="icon">shopping_basket</span></div>
+          <div class="ph-text"><div class="ph-title">Items</div><div class="ph-sub">Manage your catalog, pricing, and stock.</div></div>
+          <span class="icon" onclick="openDrawer()" style="color:var(--text);">menu</span>
+        </div>
+
+        <div class="card">
+          <button class="btn primary" onclick="toast('Import dialog opened')">Import from Excel/CSV</button>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Columns: Category, Name, Price, Purchase Price, Stock Quantity, Low Stock Threshold</div>
+        </div>
+
+        <div class="input-group"><label>Category</label><select><option>Groceries</option><option>Snacks</option><option>Drinks</option></select></div>
+        <div class="input-group"><label>Name</label><input placeholder="e.g. Sugar 1kg"></div>
+        <div class="input-group"><label>Item Image</label>
+          <div style="height:80px; border:1.5px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:13px;">Tap to upload image</div>
+        </div>
+        <div class="input-group"><label>Price</label><input type="number" placeholder="0"></div>
+        <div class="input-group"><label>Purchase Price</label><input type="number" placeholder="0"></div>
+        <div class="input-group"><label>Stock Quantity</label><input type="number" placeholder="0"></div>
+        <div class="input-group"><label>Low Stock Alert At</label><input type="number" placeholder="0"></div>
+        <button class="btn primary" onclick="toast('Item added to catalog')">Add Item</button>
+
+        <div class="subsection-title" style="margin-top:20px;">Catalog (4)</div>
+        <div class="card">
+          <div class="row-flex"><b style="font-size:16px;">Basmati Rice 5kg</b></div>
+          <div style="font-size:12px; color:var(--text-muted); margin:2px 0 8px;">Groceries</div>
+          <div class="row-flex" style="font-size:13px; color:var(--text-secondary);"><span>Price: Rs 1,450</span><span>Cost: Rs 1,100</span></div>
+          <div class="row-flex" style="font-size:13px; color:var(--text-secondary); margin-top:4px;"><span>Stock: 24</span><span>Alert at: 10</span></div>
+          <div style="margin-top:8px;"><button class="link-btn" onclick="toast('Edit item')">Edit</button> <button class="link-btn danger" style="margin-left:8px;" onclick="toast('Item deleted')">Delete</button></div>
+        </div>
+        <div class="card">
+          <div class="row-flex"><b style="font-size:16px;">Tea Pack 400g</b><span class="badge danger">Low</span></div>
+          <div style="font-size:12px; color:var(--text-muted); margin:2px 0 8px;">Groceries</div>
+          <div class="row-flex" style="font-size:13px; color:var(--text-secondary);"><span>Price: Rs 380</span><span>Cost: Rs 310</span></div>
+          <div class="row-flex" style="font-size:13px; color:var(--text-secondary); margin-top:4px;"><span>Stock: 6</span><span>Alert at: 10</span></div>
+          <div style="margin-top:8px;"><button class="link-btn" onclick="toast('Edit item')">Edit</button> <button class="link-btn danger" style="margin-left:8px;" onclick="toast('Item deleted')">Delete</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CATEGORIES (matches categories_screen.dart) ============ -->
+    <div class="screen" id="scr-categories">
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon"><span class="icon">sell</span></div>
+          <div class="ph-text"><div class="ph-title">Categories</div><div class="ph-sub">Organize your catalog into groups.</div></div>
+          <span class="icon" onclick="openDrawer()" style="color:var(--text);">menu</span>
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:16px;">
+          <input placeholder="New category name" style="flex:1; padding:10px 12px; border-radius:8px; border:1.5px solid var(--border); font-family:inherit;">
+          <button class="btn primary" style="width:auto; padding:14px 18px;" onclick="toast('Category added')">Add</button>
+        </div>
+        <div class="card"><div class="row-flex"><b style="font-size:15px;">Groceries</b><div><button class="link-btn" onclick="toast('Edit category')">Edit</button> <button class="link-btn danger" style="margin-left:8px;" onclick="toast('Category deleted')">Delete</button></div></div></div>
+        <div class="card"><div class="row-flex"><b style="font-size:15px;">Snacks</b><div><button class="link-btn" onclick="toast('Edit category')">Edit</button> <button class="link-btn danger" style="margin-left:8px;" onclick="toast('Category deleted')">Delete</button></div></div></div>
+        <div class="card"><div class="row-flex"><b style="font-size:15px;">Drinks</b><div><button class="link-btn" onclick="toast('Edit category')">Edit</button> <button class="link-btn danger" style="margin-left:8px;" onclick="toast('Category deleted')">Delete</button></div></div></div>
+      </div>
+    </div>
+
+    <!-- ============ LOW STOCK (matches low_stock_screen.dart) ============ -->
+    <div class="screen" id="scr-low-stock">
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon dangerbg"><span class="icon">error_outline</span></div>
+          <div class="ph-text"><div class="ph-title">Low Stock Alerts</div><div class="ph-sub">Items at or below their low-stock threshold.</div></div>
+        </div>
+        <div class="row-flex" style="margin-bottom:12px;">
+          <span style="font-size:13px; color:var(--text-secondary); flex:1;">Consider recording a purchase to top these up.</span>
+          <button class="link-btn" onclick="toast('Refreshed')">Refresh</button>
+        </div>
+        <div class="card">
+          <div class="row-flex"><b style="font-size:16px;">Tea Pack 400g</b><span class="badge danger">6 left</span></div>
+          <div style="font-size:12px; color:var(--text-muted); margin:2px 0;">Groceries</div>
+          <div style="font-size:13px; color:var(--text-secondary);">Threshold: 10</div>
+        </div>
+        <div class="card">
+          <div class="row-flex"><b style="font-size:16px;">Mineral Water 1.5L</b><span class="badge danger">3 left</span></div>
+          <div style="font-size:12px; color:var(--text-muted); margin:2px 0;">Drinks</div>
+          <div style="font-size:13px; color:var(--text-secondary);">Threshold: 12</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ORDER HISTORY (matches orders_history_screen.dart) ============ -->
+    <div class="screen" id="scr-order-history">
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon"><span class="icon">history</span></div>
+          <div class="ph-text"><div class="ph-title">Order History</div><div class="ph-sub">Every order ever placed.</div></div>
+          <span class="icon" onclick="openDrawer()" style="color:var(--text);">menu</span>
+        </div>
+        <div class="search-box"><span class="icon">search</span><input placeholder="Search by customer or order #..."></div>
+        <div class="chip-row">
+          <div class="chip active">Today</div><div class="chip">This Week</div><div class="chip">This Month</div><div class="chip">All Time</div><div class="chip">Custom</div>
+        </div>
+        <div class="card rounded12" style="display:flex; justify-content:space-around; text-align:center;">
+          <div><div style="font-size:11px; color:var(--text-muted);">Today</div><b>12</b></div>
+          <div><div style="font-size:11px; color:var(--text-muted);">This Week</div><b>84</b></div>
+          <div><div style="font-size:11px; color:var(--text-muted);">This Month</div><b>312</b></div>
+          <div><div style="font-size:11px; color:var(--text-muted);">All Time</div><b>2,140</b></div>
+        </div>
+        <select style="width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; margin-bottom:6px; font-family:inherit;"><option>All Workers</option><option>Usman Ali</option><option>Hina Shah</option></select>
+        <div class="card">
+          <div class="row-flex"><b style="font-size:14px;">Order #1041</b><span class="badge success">PAID</span></div>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Basmati Rice 5kg, Cooking Oil 1L</div>
+        </div>
+        <div class="card">
+          <div class="row-flex"><b style="font-size:14px;">Order #1040</b><span class="badge warning">PENDING</span></div>
+          <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Tea Pack 400g</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CUSTOMER LEDGER (matches ledger_screen.dart) ============ -->
+    <div class="screen" id="scr-ledger">
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon"><span class="icon">menu_book</span></div>
+          <div class="ph-text"><div class="ph-title">Customer Khata (Ledgers)</div><div class="ph-sub">Manage outstanding balances and record payments.</div></div>
+          <span class="icon" onclick="openDrawer()" style="color:var(--text);">menu</span>
+        </div>
+        <div class="card rounded12" onclick="openSheet('ledger-detail-sheet')" style="cursor:pointer;">
+          <div class="row-flex">
+            <div><b style="font-size:16px;">Ahmed Traders</b><div style="font-size:12px; color:var(--text-muted); margin-top:4px;">0300-1234567</div></div>
+            <div style="text-align:right;"><div style="font-size:11px; color:var(--text-muted);">Balance</div><div style="font-size:16px; font-weight:800; color:var(--danger);">Rs 8,900</div></div>
+          </div>
+        </div>
+        <div class="card rounded12" onclick="toast('Bilal Hardware ledger')" style="cursor:pointer;">
+          <div class="row-flex">
+            <div><b style="font-size:16px;">Bilal Hardware</b><div style="font-size:12px; color:var(--text-muted); margin-top:4px;">0321-9988776</div></div>
+            <div style="text-align:right;"><div style="font-size:11px; color:var(--text-muted);">Balance</div><div style="font-size:16px; font-weight:800; color:var(--success);">Rs 0</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ STAFF (matches staff_screen.dart) ============ -->
+    <div class="screen" id="scr-staff">
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon"><span class="icon">people_outline</span></div>
+          <div class="ph-text"><div class="ph-title">Staff</div><div class="ph-sub">Add and manage your store team.</div></div>
+          <span class="icon" onclick="openDrawer()" style="color:var(--text);">menu</span>
+        </div>
+        <div class="card">
+          <b style="font-size:15px;">Add Staff Member</b>
+          <div style="font-size:12px; color:var(--text-muted); margin:4px 0 12px;">Create a new staff account and immediately add them to your store.</div>
+          <div class="input-group" style="margin-bottom:10px;"><input placeholder="Full Name"></div>
+          <div class="input-group" style="margin-bottom:10px;"><input placeholder="staff@email.com"></div>
+          <div class="input-group" style="margin-bottom:10px;"><input type="password" placeholder="Password (min. 6 chars)"></div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <span style="font-size:13px; font-weight:600; color:var(--text-secondary);">Role:</span>
+            <select style="flex:1;"><option>Store Worker</option><option>Owner</option></select>
+          </div>
+          <button class="btn primary" onclick="toast('Staff member created and added')">Create & Add to Store</button>
+        </div>
+
+        <div class="card">
+          <div class="row-flex"><div><b>Usman Ali</b> <span class="badge primary" style="margin-left:4px;">You</span><div style="font-size:12px; color:var(--text-secondary);">usman@storeflow.com</div></div><span class="badge primary">Store Worker</span></div>
+        </div>
+        <div class="card">
+          <div class="row-flex"><div><b>Hina Shah</b><div style="font-size:12px; color:var(--text-secondary);">hina@storeflow.com</div></div><span class="badge" style="background:rgba(199,125,24,.12); color:var(--warning);">Owner</span></div>
+          <div class="btn-row" style="margin-top:10px;">
+            <select style="flex:1; padding:8px 10px; border:1.5px solid var(--border); border-radius:6px; font-size:12px;"><option>Store Worker</option><option selected>Owner</option></select>
+            <button class="btn outline danger btn-sm" onclick="openDialog('remove-staff-dialog')">Remove</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ STAFF ACTIVITY (matches staff_activity_screen.dart) ============ -->
+    <div class="screen" id="scr-staff-activity">
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon"><span class="icon">auto_graph</span></div>
+          <div class="ph-text"><div class="ph-title">Staff Activity</div><div class="ph-sub">How much work each staff member has handled.</div></div>
+          <span class="icon" onclick="openDrawer()" style="color:var(--text);">menu</span>
+        </div>
+        <div class="card">
+          <b style="font-size:16px;">Owners</b>
+          <div class="divider"></div>
+          <div class="row-flex" style="padding:10px 0; border-bottom:1px solid var(--border);">
+            <div><b style="font-size:14px;">Hina Shah</b><div style="font-size:12px; color:var(--text-muted);">hina@storeflow.com</div></div>
+            <div style="text-align:right;"><div style="font-size:13px; font-weight:700; color:var(--primary);">18 orders placed</div><div style="font-size:11px; color:var(--text-muted);">Rs 84,200</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <b style="font-size:16px;">Workers</b>
+          <div class="divider"></div>
+          <div class="row-flex" style="padding:10px 0; border-bottom:1px solid var(--border);">
+            <div><b style="font-size:14px;">Usman Ali</b><div style="font-size:12px; color:var(--text-muted);">usman@storeflow.com</div></div>
+            <div style="font-size:13px; font-weight:700; color:var(--primary);">142 picked (All Time)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RECORD PURCHASE (matches purchase_entry_screen.dart) ============ -->
+    <div class="screen" id="scr-record-purchase">
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon accentbg"><span class="icon">local_shipping</span></div>
+          <div class="ph-text"><div class="ph-title">Record Purchase</div><div class="ph-sub">Add stock that just arrived and what you paid.</div></div>
+          <span class="icon" onclick="openDrawer()" style="color:var(--text);">menu</span>
+        </div>
+        <div class="input-group"><label>Item</label><select><option>Select...</option><option>Tea Pack 400g</option><option>Basmati Rice 5kg</option></select></div>
+        <div class="input-group"><label>Quantity</label><input type="number" placeholder="0" id="pq"></div>
+        <div class="input-group"><label>Purchase Price (per unit)</label><input type="number" placeholder="0" id="pp"></div>
+        <button class="btn accent" onclick="addPurchaseLine()">Add to Purchase</button>
+
+        <div class="subsection-title" style="margin-top:20px;">Purchase Lines</div>
+        <div id="purchase-lines">
+          <div class="center-msg">No lines added yet.</div>
+        </div>
+        <div id="purchase-total" style="font-size:18px; font-weight:800; color:var(--primary); margin:12px 0; display:none;"></div>
+        <button class="btn primary" onclick="toast('Purchase recorded, stock updated')">Record Purchase</button>
+
+        <div class="subsection-title" style="margin-top:24px;">Recent Purchases</div>
+        <div class="card">
+          <div class="row-flex"><b style="font-size:14px;">Purchase #221</b><span style="font-size:11px; color:var(--text-muted);">Sep 1, 2:10 PM</span></div>
+          <div style="font-size:13px; color:var(--text-secondary); margin:4px 0;">Tea Pack 400g × 20</div>
+          <div style="font-size:14px; font-weight:700; color:var(--primary);">Total: Rs 6,200</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ REPORTS (matches reports_screen.dart) ============ -->
+    <div class="screen" id="scr-reports">
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon"><span class="icon">bar_chart</span></div>
+          <div class="ph-text"><div class="ph-title">Reports</div><div class="ph-sub">Sales trends, best sellers, and how customers pay.</div></div>
+          <span class="icon" onclick="openDrawer()" style="color:var(--text);">menu</span>
+        </div>
+
+        <div class="card">
+          <b style="font-size:16px;">Sales — Last 14 Days</b>
+          <div class="bars-row" style="margin-top:14px;">
+            <div class="bar-col"><div class="bar-fill" style="height:30%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:45%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:20%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:60%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:38%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:70%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:55%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:80%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:42%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:65%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:50%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:90%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:72%;"></div></div>
+            <div class="bar-col"><div class="bar-fill" style="height:95%;"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <b style="font-size:16px;">Top-Selling Items</b>
+          <div style="margin-top:14px;">
+            <div class="hbar-row"><div class="hbar-name">Cooking Oil 1L</div><div class="hbar-track"><div class="hbar-fill" style="width:100%;"></div></div><div class="hbar-val">142</div></div>
+            <div class="hbar-row"><div class="hbar-name">Basmati Rice</div><div class="hbar-track"><div class="hbar-fill" style="width:69%;"></div></div><div class="hbar-val">98</div></div>
+            <div class="hbar-row"><div class="hbar-name">Tea Pack 400g</div><div class="hbar-track"><div class="hbar-fill" style="width:60%;"></div></div><div class="hbar-val">85</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <b style="font-size:16px;">Payment Type Breakdown</b>
+          <div style="margin-top:14px;">
+            <div class="row-flex"><div style="display:flex; align-items:center; gap:8px;"><div class="pay-dot" style="background:#2F6F4E;"></div><span style="font-size:13px;">Paid · 210 order(s)</span></div><b style="font-size:13px;">Rs 1,84,000</b></div>
+            <div class="pay-track"><div class="pay-fill" style="width:78%; background:#2F6F4E;"></div></div>
+            <div class="row-flex" style="margin-top:12px;"><div style="display:flex; align-items:center; gap:8px;"><div class="pay-dot" style="background:#E2733A;"></div><span style="font-size:13px;">Pay Later · 58 order(s)</span></div><b style="font-size:13px;">Rs 52,300</b></div>
+            <div class="pay-track"><div class="pay-fill" style="width:22%; background:#E2733A;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SETTINGS (matches settings_screen.dart) ============ -->
+    <div class="screen" id="scr-settings">
+      <div class="content">
+        <div class="page-header">
+          <div class="ph-icon"><span class="icon">settings</span></div>
+          <div class="ph-text"><div class="ph-title">Settings</div><div class="ph-sub">Manage your profile and account security.</div></div>
+          <span class="icon" onclick="openDrawer()" style="color:var(--text);">menu</span>
+        </div>
+        <div class="card" style="display:flex; align-items:center; gap:16px;">
+          <div style="width:64px; height:64px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px;">SO</div>
+          <button class="btn outline btn-sm" style="width:auto; color:var(--primary); border-color:var(--primary);" onclick="toast('Photo picker opened')">Change Photo</button>
+        </div>
+        <div class="card">
+          <b style="font-size:16px;">Profile</b>
+          <div class="input-group" style="margin-top:10px;"><label>Name</label><input value="Store Owner"></div>
+          <div class="input-group"><label>Email</label><input value="owner@storeflow.com"></div>
+          <div class="input-group"><label>Store Code (For Clients)</label><input value="TEN-4821" disabled></div>
+          <button class="btn primary" onclick="toast('Profile saved')">Save Profile</button>
+        </div>
+        <div class="card">
+          <b style="font-size:16px;">Change Password</b>
+          <div class="input-group" style="margin-top:10px;"><label>Current Password</label><input type="password"></div>
+          <div class="input-group"><label>New Password</label><input type="password"></div>
+          <div class="input-group"><label>Confirm New Password</label><input type="password"></div>
+          <button class="btn primary" onclick="toast('Password changed')">Change Password</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DRAWER (matches app_layout.dart) ============ -->
+    <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+    <div class="drawer" id="drawer">
+      <div class="drawer-header">
+        <div class="drawer-avatar">SO</div>
+        <div class="dh-text"><div class="dh-business">Green Valley Mart</div><div class="dh-name">Store Owner</div></div>
+        <span class="icon" onclick="openDialog('logout-dialog')">logout</span>
+      </div>
+      <div class="drawer-item active" onclick="go('dashboard'); closeDrawer();"><span class="icon">dashboard</span>Dashboard</div>
+      <div class="drawer-item" onclick="go('sales'); closeDrawer();"><span class="icon">point_of_sale</span>Sales</div>
+      <div class="drawer-item" onclick="go('queue'); closeDrawer();"><span class="icon">assignment</span>Queue Orders</div>
+      <div class="drawer-item" onclick="go('categories'); closeDrawer();"><span class="icon">label</span>Categories</div>
+      <div class="drawer-item" onclick="go('items'); closeDrawer();"><span class="icon">shopping_basket</span>Items</div>
+      <div class="drawer-item" onclick="go('order-history'); closeDrawer();"><span class="icon">history</span>Order History</div>
+      <div class="drawer-item" onclick="go('ledger'); closeDrawer();"><span class="icon">menu_book</span>Customer Ledger</div>
+      <div class="drawer-item" onclick="openSheet('new-order-sheet'); closeDrawer();"><span class="icon">add_shopping_cart</span>New Order</div>
+      <div class="drawer-item" onclick="go('low-stock'); closeDrawer();"><span class="icon">warning_amber</span>Low Stock</div>
+      <div class="drawer-item" onclick="go('staff'); closeDrawer();"><span class="icon">people</span>Staff</div>
+      <div class="drawer-item" onclick="go('staff-activity'); closeDrawer();"><span class="icon">analytics</span>Staff Activity</div>
+      <div class="drawer-item" onclick="go('record-purchase'); closeDrawer();"><span class="icon">local_shipping</span>Record Purchase</div>
+      <div class="drawer-item" onclick="go('reports'); closeDrawer();"><span class="icon">bar_chart</span>Reports</div>
+      <div class="drawer-item" onclick="go('settings'); closeDrawer();"><span class="icon">settings</span>Settings</div>
+    </div>
+
+    <!-- ============ SHEETS ============ -->
+    <div class="sheet-backdrop" id="sheet-new-order-sheet" onclick="closeSheetBG(event,'new-order-sheet')">
+      <div class="sheet" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Select Order Type</div>
+        <div style="padding:0 20px;">
+          <div style="display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); cursor:pointer;" onclick="closeSheet('new-order-sheet'); toast('Quick Order flow')">
+            <span class="icon" style="color:var(--primary);">flash_on</span>
+            <div><b style="font-size:14px;">Quick Order</b><div style="font-size:12px; color:var(--text-secondary);">Take a picture and assign to a worker immediately.</div></div>
+          </div>
+          <div style="display:flex; gap:12px; padding:12px 0; cursor:pointer;" onclick="closeSheet('new-order-sheet'); toast('Standard Order flow')">
+            <span class="icon" style="color:var(--primary);">list_alt</span>
+            <div><b style="font-size:14px;">Standard Order</b><div style="font-size:12px; color:var(--text-secondary);">Create a detailed list of items for the worker.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-backdrop" id="sheet-assign-worker-sheet" onclick="closeSheetBG(event,'assign-worker-sheet')">
+      <div class="sheet" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Assign Order #1044</div>
+        <div style="padding:0 20px;">
+          <div style="padding:12px 0; border-bottom:1px solid var(--border); cursor:pointer;" onclick="closeSheet('assign-worker-sheet'); toast('Assigned to Usman Ali')">Usman Ali</div>
+          <div style="padding:12px 0; cursor:pointer;" onclick="closeSheet('assign-worker-sheet'); toast('Assigned to Hina Shah')">Hina Shah</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-backdrop" id="sheet-ledger-detail-sheet" onclick="closeSheetBG(event,'ledger-detail-sheet')">
+      <div class="sheet" style="height:85%;" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div style="padding:0 20px 10px;">
+          <div class="row-flex">
+            <div><div style="font-size:20px; font-weight:800; color:var(--text);">Ahmed Traders</div><div style="font-size:13px; color:var(--text-secondary);">0300-1234567</div></div>
+            <div style="text-align:right;"><div style="font-size:12px; color:var(--text-muted);">Balance</div><div style="font-size:18px; font-weight:800; color:var(--danger);">Rs 8,900</div></div>
+          </div>
+        </div>
+        <div class="divider" style="margin:0 20px;"></div>
+        <div style="padding:16px 20px; flex:1; overflow-y:auto;">
+          <div class="card" style="display:flex; gap:12px; align-items:flex-start;">
+            <div style="width:36px; height:36px; border-radius:50%; background:#FFF0F0; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span class="icon" style="color:var(--danger); font-size:20px;">shopping_cart</span></div>
+            <div style="flex:1;"><b style="font-size:14px;">Order #1040</b><div style="font-size:12px; color:var(--text-muted); margin-top:2px;">2x Cooking Oil 1L<br>1/9/2026 11:02</div></div>
+            <div style="text-align:right;"><div style="font-weight:800; color:var(--danger); font-size:14px;">+ Rs 8,900</div><div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">Bal: Rs 8,900</div></div>
+          </div>
+          <div class="card" style="display:flex; gap:12px; align-items:flex-start;">
+            <div style="width:36px; height:36px; border-radius:50%; background:#E8F5E9; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span class="icon" style="color:var(--success); font-size:20px;">payments</span></div>
+            <div style="flex:1;"><b style="font-size:14px;">Payment received</b><div style="font-size:12px; color:var(--text-muted); margin-top:2px;">28/8/2026 4:15</div></div>
+            <div style="text-align:right;"><div style="font-weight:800; color:var(--success); font-size:14px;">- Rs 4,000</div><div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">Bal: Rs 4,000</div></div>
+          </div>
+        </div>
+        <div style="padding:10px 20px 20px;">
+          <button class="btn primary" onclick="closeSheet('ledger-detail-sheet'); openDialog('payment-dialog')">Record Payment</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DIALOGS ============ -->
+    <div class="dialog-backdrop" id="dlg-payment-dialog">
+      <div class="dialog">
+        <h3>Record Payment</h3>
+        <div class="input-group"><label>Amount (Rs)</label><input type="number" placeholder="0"></div>
+        <div class="btn-row"><button class="btn outline" onclick="closeDialog('payment-dialog')">Cancel</button><button class="btn primary" onclick="toast('Payment recorded'); closeDialog('payment-dialog')">Save</button></div>
+      </div>
+    </div>
+    <div class="dialog-backdrop" id="dlg-remove-staff-dialog">
+      <div class="dialog">
+        <h3>Remove staff?</h3>
+        <p>Remove "Hina Shah" from your store? They will lose access immediately.</p>
+        <div class="btn-row"><button class="btn outline" onclick="closeDialog('remove-staff-dialog')">Cancel</button><button class="btn outline danger" onclick="toast('Staff member removed'); closeDialog('remove-staff-dialog')">Remove</button></div>
+      </div>
+    </div>
+    <div class="dialog-backdrop" id="dlg-logout-dialog">
+      <div class="dialog">
+        <h3>Log out?</h3>
+        <p>You will need to log in again to continue.</p>
+        <div class="btn-row"><button class="btn outline" onclick="closeDialog('logout-dialog')">Cancel</button><button class="btn outline danger" onclick="closeDialog('logout-dialog'); go('login')">Log Out</button></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+</div>`n<script>
+function resizeDevice() { const device = document.querySelector('.phone'); if(device) { const scale = Math.min(1.0, (window.innerHeight * 0.9) / 844); device.style.transform = 'scale(' + scale + ')'; } } window.addEventListener('resize', resizeDevice); resizeDevice();
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById('scr-'+id);
+  if(el) el.classList.add('active');
+  closeDrawer();
+  document.querySelectorAll('.drawer-item').forEach(d=>d.classList.remove('active'));
+}
+
+function doLogin(){
+  const email = document.getElementById('login-email').value;
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  const valid = /\S+@\S+\.\S+/.test(email) && pass.length >= 1;
+  if(!valid){ err.style.display='block'; return; }
+  err.style.display='none';
+  go('dashboard');
+}
+
+function openDrawer(){ document.getElementById('drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('show'); }
+function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('show'); }
+function openSheet(id){ document.getElementById('sheet-'+id).classList.add('show'); }
+function closeSheet(id){ document.getElementById('sheet-'+id).classList.remove('show'); }
+function closeSheetBG(e, id){ if(e.target.id==='sheet-'+id) closeSheet(id); }
+function openDialog(id){ document.getElementById('dlg-'+id).classList.add('show'); }
+function closeDialog(id){ document.getElementById('dlg-'+id).classList.remove('show'); }
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function setQueueTab(el, tab){
+  document.querySelectorAll('#scr-queue .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('queue-active').style.display = tab==='active' ? 'block':'none';
+  document.getElementById('queue-approvals').style.display = tab==='approvals' ? 'block':'none';
+  document.getElementById('queue-cancelled').style.display = tab==='cancelled' ? 'block':'none';
+}
+
+let purchaseLines = [];
+function addPurchaseLine(){
+  const qty = parseFloat(document.getElementById('pq').value) || 0;
+  const price = parseFloat(document.getElementById('pp').value) || 0;
+  if(qty<=0 || price<=0){ toast('Enter quantity and price'); return; }
+  purchaseLines.push({qty, price});
+  const box = document.getElementById('purchase-lines');
+  box.innerHTML = purchaseLines.map((l,i)=>`
+    <div class="card">
+      <div class="row-flex"><b style="font-size:15px;">Tea Pack 400g</b><span class="link-btn danger" onclick="removeLine(${i})">Remove</span></div>
+      <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">${l.qty} x Rs ${l.price} = Rs ${(l.qty*l.price).toLocaleString()}</div>
+    </div>`).join('');
+  updatePurchaseTotal();
+  document.getElementById('pq').value='';
+  document.getElementById('pp').value='';
+}
+function removeLine(i){ purchaseLines.splice(i,1); addPurchaseLineRerender(); }
+function addPurchaseLineRerender(){
+  const box = document.getElementById('purchase-lines');
+  if(purchaseLines.length===0){ box.innerHTML = '<div class="center-msg">No lines added yet.</div>'; }
+  else {
+    box.innerHTML = purchaseLines.map((l,i)=>`
+    <div class="card">
+      <div class="row-flex"><b style="font-size:15px;">Tea Pack 400g</b><span class="link-btn danger" onclick="removeLine(${i})">Remove</span></div>
+      <div style="font-size:13px; color:var(--text-secondary); margin-top:4px;">${l.qty} x Rs ${l.price} = Rs ${(l.qty*l.price).toLocaleString()}</div>
+    </div>`).join('');
+  }
+  updatePurchaseTotal();
+}
+function updatePurchaseTotal(){
+  const total = purchaseLines.reduce((s,l)=>s+l.qty*l.price,0);
+  const el = document.getElementById('purchase-total');
+  if(total>0){ el.style.display='block'; el.textContent = 'Total: Rs ' + total.toLocaleString(); }
+  else { el.style.display='none'; }
+}
+</script>
+</body>
+</html>
+

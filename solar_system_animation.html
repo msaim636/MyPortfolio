@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Solar System SDK Animation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f4f3f0;
+            font-family: sans-serif;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        .container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+            transform: rotateX(20deg); /* slight tilt for 3D effect */
+        }
+
+        /* Central SDK Node */
+        .center-node {
+            width: 140px;
+            height: 140px;
+            background-color: #0f1011;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            font-weight: 800;
+            z-index: 10;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transform: rotateX(-20deg); /* counter rotation */
+        }
+
+        /* Orbit Paths */
+        .orbit-path {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px dashed rgba(255, 60, 60, 0.4);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .orbit-1 { width: 350px; height: 180px; }
+        .orbit-2 { width: 550px; height: 280px; }
+        .orbit-3 { width: 750px; height: 380px; }
+
+        /* Icons Container */
+        .icon {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            z-index: 5;
+            top: 50%;
+            left: 50%;
+            margin-top: -40px;
+            margin-left: -40px;
+        }
+
+        /* Using offset-path for elliptical orbit */
+        .icon-dart {
+            offset-path: path('M 0 -90 A 175 90 0 1 1 0 90 A 175 90 0 1 1 0 -90');
+            animation: orbit 8s linear infinite;
+            z-index: 6;
+        }
+
+        .icon-git {
+            offset-path: path('M 0 -140 A 275 140 0 1 1 0 140 A 275 140 0 1 1 0 -140');
+            animation: orbit 14s linear infinite reverse;
+            z-index: 5;
+        }
+
+        .icon-flutter {
+            offset-path: path('M 0 -190 A 375 190 0 1 1 0 190 A 375 190 0 1 1 0 -190');
+            animation: orbit 20s linear infinite;
+            z-index: 4;
+        }
+
+        @keyframes orbit {
+            0% { offset-distance: 0%; }
+            100% { offset-distance: 100%; }
+        }
+
+        /* Inner container for 3D coin-spin rotation */
+        .icon-inner {
+            width: 100%;
+            height: 100%;
+            animation: rotate3d 5s linear infinite;
+            transform-style: preserve-3d;
+        }
+        
+        /* Apply a counter-tilt to make icons face the camera */
+        .icon-wrapper {
+            width: 100%;
+            height: 100%;
+            transform: rotateX(-20deg); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 22px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+            background: white;
+        }
+
+        .icon-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @keyframes rotate3d {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Dashed orbits -->
+        <div class="orbit-path orbit-1"></div>
+        <div class="orbit-path orbit-2"></div>
+        <div class="orbit-path orbit-3"></div>
+        
+        <div class="center-node">SDK</div>
+
+        <!-- Dart Icon -->
+        <div class="icon icon-dart">
+            <div class="icon-inner">
+                <div class="icon-wrapper">
+                    <img src="C:/Users/hp/.gemini/antigravity/brain/b7923b36-5990-4edb-ae86-989b45be8b76/.user_uploaded/media_1788343183780.jpg" alt="Dart">
+                </div>
+            </div>
+        </div>
+
+        <!-- Git Icon -->
+        <div class="icon icon-git">
+            <div class="icon-inner" style="animation-direction: reverse; animation-duration: 7s;">
+                <div class="icon-wrapper">
+                    <img src="C:/Users/hp/.gemini/antigravity/brain/b7923b36-5990-4edb-ae86-989b45be8b76/.user_uploaded/media_1788343183803.jpg" alt="Git">
+                </div>
+            </div>
+        </div>
+
+        <!-- Flutter Icon -->
+        <div class="icon icon-flutter">
+            <div class="icon-inner" style="animation-duration: 8s;">
+                <div class="icon-wrapper">
+                    <img src="C:/Users/hp/.gemini/antigravity/brain/b7923b36-5990-4edb-ae86-989b45be8b76/.user_uploaded/media_1788343183814.jpg" alt="Flutter">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

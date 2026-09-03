@@ -1,0 +1,549 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Udhaar Khata — Interactive Prototype</title>
+<style>
+  :root{
+    --green:#07583D; --green-deep:#075E3E; --green-btn:#07583D;
+    --green-light:#E4F1EC; --green-wash:#E3F3EC; --green-tint:rgba(5,84,47,.15);
+    --red:#EF3F42; --red-strong:#FF2E12; --red-wash:#FDE9E6; --red-tint:rgba(252,120,102,.20);
+    --gray-text:#6B7280; --gray-border:#B9C0BC; --bg:#F7F9F8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; padding:16px 16px; min-height:100vh;
+    background:transparent; display:flex; align-items:center; justify-content:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  .device-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100vh; overflow: hidden; }
+  .device{
+    /* scale set by JS */
+    transform-origin: center center;
+    width:428px; height:926px; background:#131315; border-radius:52px; border: 4px solid #333336;
+    padding:16px; box-shadow:0 30px 60px rgba(0,0,0,.35); position:relative; flex-shrink:0;
+  }
+  .screen-stack{
+    width:100%; height:100%; background:var(--bg); border-radius:38px; overflow:hidden; position:relative;
+  }
+  .notch{
+    position:absolute; top:16px; left:50%; transform:translateX(-50%);
+    width:140px; height:28px; background:#131315; border-radius:0 0 20px 20px; z-index:50;
+  }
+  .screen{
+    position:absolute; inset:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    transform:translateX(100%); transition:transform .32s cubic-bezier(.22,1,.36,1);
+    opacity:0; pointer-events:none;
+  }
+  .screen.active{ transform:translateX(0); opacity:1; pointer-events:auto; z-index:10;}
+  .screen.below{ transform:translateX(-30%); opacity:0; }
+  .statusbar{ display:flex; justify-content:space-between; padding:16px 24px 0; font-size:14px; font-weight:600; }
+  .statusbar.white{ color:#fff; }
+  .statusbar.dark{ color:#0B0B0C; }
+  .green-wash-bg{
+    background:linear-gradient(to bottom, var(--green) 0%, rgba(255,255,255,0) 55%), var(--bg);
+  }
+  .h1{ font-size:34px; font-weight:800; color:#fff; margin:6px 0 0; }
+  .sub{ font-size:13px; color:rgba(255,255,255,.85); margin:2px 0 0;}
+  .backbtn{
+    display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px;
+    border-radius:50%; background:rgba(255,255,255,.18); color:#fff; border:none; cursor:pointer;
+    font-size:18px; margin-bottom:6px;
+  }
+  .card{ background:#fff; border-radius:16px; box-shadow:0 3px 10px rgba(0,0,0,.08); }
+  .field-label{ font-size:14px; font-weight:700; color:#111; margin:14px 0 6px; }
+  .field{
+    width:100%; padding:12px 14px; border:1.5px solid var(--gray-border); border-radius:10px;
+    font-size:14px; background:#fff; outline:none;
+  }
+  .field:focus{ border-color:var(--green); border-width:2px; }
+  .err{ color:var(--red-strong); font-size:12px; margin-top:4px; display:none; }
+  .btn{
+    height:48px; border-radius:14px; border:none; width:100%; display:flex; align-items:center;
+    justify-content:center; gap:10px; font-size:15px; font-weight:800; color:#fff; cursor:pointer;
+    background:linear-gradient(135deg, rgba(7,88,61,.78), #07583D); box-shadow:0 5px 12px rgba(7,88,61,.22);
+  }
+  .btn.red{ background:linear-gradient(135deg, rgba(239,63,66,.78), #EF3F42); box-shadow:0 5px 12px rgba(239,63,66,.22); }
+  .btn.outline{ background:#fff; color:var(--green); border:1.5px solid rgba(7,88,61,.55); box-shadow:none; }
+  .btn.outline.red{ color:var(--red-strong); border-color:rgba(239,63,66,.55); }
+  .btn-icon{ width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:14px;}
+  .btn.outline .btn-icon{ background:var(--green); color:#fff; }
+  .link{ color:var(--green); font-weight:700; cursor:pointer; }
+  .khata-row{
+    display:flex; align-items:center; gap:12px; background:#fff; border-radius:18px; padding:14px;
+    box-shadow:0 2px 8px rgba(0,0,0,.05); margin-bottom:10px; cursor:pointer;
+  }
+  .avatar{
+    width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:19px; flex-shrink:0;
+  }
+  .navbar{
+    position:absolute; bottom:16px; left:12px; right:12px; height:72px; background:#fff;
+    border:1px solid #E3ECE8; border-radius:26px; box-shadow:0 5px 18px rgba(0,0,0,.09);
+    display:flex; align-items:center; justify-content:space-around; z-index:30;
+  }
+  .navitem{ display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; padding:8px 18px; }
+  .navitem .ic{ width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .navitem.active .ic{ background:var(--green-light); color:var(--green); }
+  .navitem:not(.active) .ic{ color:#79857F; }
+  .navitem span{ font-size:11px; color:#79857F; }
+  .navitem.active span{ color:var(--green); font-weight:600; }
+  .fab{
+    position:absolute; bottom:58px; left:50%; transform:translateX(-50%); width:62px; height:62px;
+    border-radius:50%; background:var(--green); border:5px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,.25);
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:28px; cursor:pointer; z-index:31;
+  }
+  .radio-row{ display:flex; align-items:center; gap:10px; padding:10px 6px; cursor:pointer; }
+  .radio-dot{ width:19px; height:19px; border-radius:50%; border:2px solid #999; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .radio-dot.checked{ border-color:var(--green); }
+  .radio-dot.checked.red-dot{ border-color:var(--red); }
+  .radio-dot .fill{ width:10px; height:10px; border-radius:50%; background:var(--green); display:none; }
+  .radio-dot.checked .fill{ display:block; }
+  .radio-dot.checked.red-dot .fill{ background:var(--red); }
+  .badge{ display:inline-block; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700; }
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+</style>
+</head>
+<body>
+
+<h2 class="sr-only">Interactive prototype of the Udhaar Khata Flutter app: login, home dashboard, khata details, add/edit khata, add entry, and profile screens, navigable by tapping.</h2>
+
+<div class="device-wrapper">
+<div class="device">
+  <div class="notch"></div>
+  <div class="screen-stack" id="stack">
+
+    <!-- LOGIN -->
+    <section class="screen active green-wash-bg" data-screen="login">
+      <div class="statusbar white"><span>9:41</span><span>▮▮▮ 100%</span></div>
+      <div style="padding:16px 26px;">
+        <h1 class="h1">Login</h1>
+        <p class="sub">Login to continue your Udhaar Khata</p>
+      </div>
+      <div class="card" style="margin:44px 18px 0; padding:16px;">
+        <div class="field-label">Email address</div>
+        <input class="field" id="login-email" placeholder="Enter your email address" />
+        <div class="err" id="login-email-err">Enter a valid email address</div>
+        <div class="field-label">Password</div>
+        <input class="field" id="login-password" type="password" placeholder="Enter your password" />
+        <div class="err" id="login-password-err">Password is required</div>
+        <div style="text-align:right; margin-top:12px;"><span style="font-size:13px; font-weight:700; color:var(--green);">Forget password?</span></div>
+      </div>
+      <div style="padding:20px 26px 0;">
+        <button class="btn" onclick="doLogin()"><span class="btn-icon">➜</span>Login</button>
+      </div>
+      <p style="text-align:center; font-size:14px; margin-top:16px;">Don't have an account? <span class="link" onclick="go('register')">Register</span></p>
+    </section>
+
+    <!-- REGISTER -->
+    <section class="screen green-wash-bg" data-screen="register">
+      <div class="statusbar white"><span>9:41</span><span>▮▮▮ 100%</span></div>
+      <div style="padding:16px 26px;">
+        <button class="backbtn" onclick="back()">‹</button>
+        <h1 class="h1" style="font-size:30px;">Register</h1>
+        <p class="sub">Register and continue your Udhaar Khata</p>
+      </div>
+      <div class="card" style="margin:20px 18px 0; padding:16px;">
+        <div class="field-label">Name</div>
+        <input class="field" id="reg-name" placeholder="Enter your full name" />
+        <div class="err" id="reg-name-err">Please enter your name</div>
+        <div class="field-label">Email address</div>
+        <input class="field" id="reg-email" placeholder="Enter your email address" />
+        <div class="err" id="reg-email-err">Enter a valid email address</div>
+        <div class="field-label">Password</div>
+        <input class="field" id="reg-password" type="password" placeholder="Enter your password" />
+        <div class="err" id="reg-password-err">Password must be at least 6 characters</div>
+      </div>
+      <div style="padding:20px 26px 0;">
+        <button class="btn" onclick="doRegister()"><span class="btn-icon">＋</span>Register</button>
+      </div>
+      <p style="text-align:center; font-size:14px; margin-top:16px;">Already have an account? <span class="link" onclick="go('login')">Login</span></p>
+    </section>
+
+    <!-- HOME -->
+    <section class="screen green-wash-bg" data-screen="home">
+      <div class="statusbar white"><span>9:41</span><span>▮▮▮ 100%</span></div>
+      <div style="padding:16px 24px 0;">
+        <h1 class="h1" style="font-size:30px;">Udhaar Khata</h1>
+      </div>
+      <div class="card" style="margin:14px 24px 0; padding:18px;">
+        <p style="text-align:center; font-weight:800; color:var(--green); font-size:19px; margin:0 0 14px;">Total Hisab</p>
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1; background:var(--green-tint); border-radius:14px; padding:12px; text-align:center;">
+            <div style="font-size:13px; font-weight:700; color:var(--green);">Total Lena</div>
+            <div id="total-lena" style="font-size:17px; font-weight:800; color:var(--green); margin-top:4px;">PKR 0</div>
+          </div>
+          <div style="flex:1; background:var(--red-tint); border-radius:14px; padding:12px; text-align:center;">
+            <div style="font-size:13px; font-weight:700; color:var(--red-strong);">Total Dena</div>
+            <div id="total-dena" style="font-size:17px; font-weight:800; color:var(--red-strong); margin-top:4px;">PKR 0</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:22px 24px 10px;">
+        <span style="font-size:16px; font-weight:700;">Your customers</span>
+        <span style="font-size:12px; font-weight:700; color:var(--green);">All records</span>
+      </div>
+      <div id="khata-list" style="padding:0 24px 150px;"></div>
+      <div class="navbar">
+        <div class="navitem active" id="nav-home" onclick="go('home')"><div class="ic">⌂</div><span>Home</span></div>
+        <div class="navitem" id="nav-profile" onclick="go('profile')"><div class="ic">☺</div><span>Profile</span></div>
+      </div>
+      <div class="fab" onclick="openAddKhata()">＋</div>
+    </section>
+
+    <!-- KHATA DETAILS -->
+    <section class="screen green-wash-bg" data-screen="details">
+      <div class="statusbar white"><span>9:41</span><span>▮▮▮ 100%</span></div>
+      <div style="padding:16px 24px 0; display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <button class="backbtn" onclick="go('home')">‹</button>
+          <h1 class="h1" style="font-size:28px;">Khata Details</h1>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:6px;">
+          <span class="btn-icon" style="width:34px;height:34px;">⇩</span>
+          <span class="btn-icon" style="width:34px;height:34px;">⇪</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin:14px 24px 0; padding:14px;">
+        <div style="display:flex; gap:14px;">
+          <div class="avatar" id="d-avatar" style="background:#eee;">A</div>
+          <div style="flex:1;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span id="d-name" style="font-weight:800; font-size:18px;">Name</span>
+              <span class="link" style="font-size:15px;" onclick="openEditKhata()">✎</span>
+            </div>
+            <div style="font-size:13px; margin-top:2px;">Type: <span id="d-type" style="font-weight:700;">Lena</span></div>
+            <div style="font-size:13px; color:var(--gray-text); margin-top:2px;">📞 <span id="d-phone">No phone number</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin:10px 24px 0; padding:14px; text-align:center;">
+        <div id="d-balance-label" style="font-size:13px; color:var(--gray-text);">Balance to receive</div>
+        <div id="d-amount" style="font-size:23px; font-weight:800; color:var(--green-deep); margin-top:4px;">PKR 0.00</div>
+      </div>
+
+      <div style="padding:14px 24px 0;">
+        <div style="font-weight:700; font-size:14px; margin-bottom:6px;">Note</div>
+        <div class="card" style="padding:12px; min-height:60px; font-size:13px;" id="d-note">—</div>
+      </div>
+
+      <div style="padding:14px 24px 0;">
+        <div style="font-weight:700; font-size:14px; margin-bottom:6px;">Recent activity</div>
+        <div class="card" style="padding:12px;" id="d-entries"></div>
+      </div>
+
+      <div style="display:flex; gap:10px; padding:16px 24px 40px;">
+        <button class="btn red" style="flex:1;" onclick="deleteKhata()"><span class="btn-icon">🗑</span>Delete</button>
+        <button class="btn" style="flex:1;" onclick="openAddEntry()"><span class="btn-icon">＋</span>Add entry</button>
+      </div>
+    </section>
+
+    <!-- ADD / EDIT KHATA -->
+    <section class="screen green-wash-bg" data-screen="addkhata">
+      <div class="statusbar white"><span>9:41</span><span>▮▮▮ 100%</span></div>
+      <div style="padding:16px 24px 0;">
+        <button class="backbtn" onclick="cancelKhataForm()">‹</button>
+        <h1 class="h1" id="ak-title" style="font-size:30px;">Add Khata</h1>
+      </div>
+      <div style="padding:6px 24px 40px;">
+        <div class="field-label">Name</div>
+        <input class="field" id="ak-name" placeholder="Enter name" />
+        <div class="field-label">Amount</div>
+        <input class="field" id="ak-amount" type="number" placeholder="Enter amount" />
+        <div class="err" id="ak-err">Please fill required fields correctly</div>
+        <div class="field-label">Phone</div>
+        <input class="field" id="ak-phone" placeholder="Enter phone number" />
+        <div class="field-label">Type</div>
+        <div class="card" style="padding:4px 10px;">
+          <div class="radio-row" onclick="setKhataType('Lena')">
+            <div class="radio-dot checked" id="ak-radio-lena"><div class="fill"></div></div>
+            <span style="font-weight:700; color:var(--green);">Lena hai / Receive</span>
+          </div>
+          <div class="radio-row" onclick="setKhataType('Dena')">
+            <div class="radio-dot red-dot" id="ak-radio-dena"><div class="fill"></div></div>
+            <span style="font-weight:700; color:var(--red);">Dena hai / Pay</span>
+          </div>
+        </div>
+        <div class="field-label">Note</div>
+        <textarea class="field" id="ak-note" rows="2" placeholder="Enter note"></textarea>
+        <div style="margin-top:18px;">
+          <button class="btn" onclick="saveKhata()"><span class="btn-icon">✓</span><span id="ak-save-label">Save khata</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADD ENTRY -->
+    <section class="screen green-wash-bg" data-screen="addentry">
+      <div class="statusbar white"><span>9:41</span><span>▮▮▮ 100%</span></div>
+      <div style="padding:16px 24px 0;">
+        <button class="backbtn" onclick="go('details')">‹</button>
+        <h1 class="h1" style="font-size:30px;">Add Entry</h1>
+      </div>
+      <div style="padding:6px 24px 40px;">
+        <div class="field-label">Amount</div>
+        <input class="field" id="ae-amount" type="number" placeholder="Enter amount" />
+        <div class="err" id="ae-err">Enter a valid amount</div>
+        <div class="field-label">Entry type</div>
+        <div class="card" style="padding:4px 10px;">
+          <div class="radio-row" onclick="setEntryType('Received')">
+            <div class="radio-dot checked" id="ae-radio-received"><div class="fill"></div></div>
+            <span style="font-weight:700;">Received / Borrowed</span>
+          </div>
+          <div class="radio-row" onclick="setEntryType('Given')">
+            <div class="radio-dot" id="ae-radio-given"><div class="fill"></div></div>
+            <span style="font-weight:700;">Given / Paid</span>
+          </div>
+        </div>
+        <div class="field-label">Note</div>
+        <textarea class="field" id="ae-note" rows="2" placeholder="Enter note"></textarea>
+        <div style="margin-top:18px;">
+          <button class="btn" onclick="saveEntry()"><span class="btn-icon">✓</span>Save entry</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="screen" data-screen="profile" style="background:var(--bg);">
+      <div class="statusbar dark"><span>9:41</span><span>▮▮▮ 100%</span></div>
+      <div style="padding:36px 24px 0; text-align:center;">
+        <div style="width:92px; height:92px; border-radius:50%; background:var(--green); color:#fff; font-size:36px; font-weight:800; display:flex; align-items:center; justify-content:center; margin:0 auto;">S</div>
+        <div style="font-size:22px; font-weight:800; margin-top:14px;">Saim</div>
+        <div style="color:var(--gray-text); margin-top:4px;">saim@udhaarkhata.app</div>
+      </div>
+      <div style="padding:28px 24px 0;">
+        <div class="card" style="padding:16px; display:flex; align-items:center; gap:14px; margin-bottom:12px;">
+          <span style="color:var(--green); font-size:18px;">☺</span>
+          <div><div style="font-size:12px; color:var(--gray-text);">Name</div><div style="font-weight:700; font-size:15px;">Saim</div></div>
+        </div>
+        <div class="card" style="padding:16px; display:flex; align-items:center; gap:14px;">
+          <span style="color:var(--green); font-size:18px;">✉</span>
+          <div><div style="font-size:12px; color:var(--gray-text);">Email address</div><div style="font-weight:700; font-size:15px;">saim@udhaarkhata.app</div></div>
+        </div>
+        <div style="margin-top:28px;">
+          <button class="btn red" onclick="signOut()"><span class="btn-icon">⏻</span>Sign out</button>
+        </div>
+      </div>
+      <div class="navbar">
+        <div class="navitem" onclick="go('home')"><div class="ic">⌂</div><span>Home</span></div>
+        <div class="navitem active" id="nav-profile-2"><div class="ic">☺</div><span>Profile</span></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+</div>
+
+<script>
+let khataList = [
+  {id:1, name:'Ahmed Traders', phone:'', type:'Lena', amount:12000, note:'Cloth supplied on credit for Eid stock.', entries:[
+    {type:'Given', amount:12000, note:'Initial credit given', date:'12 Aug'}
+  ]},
+  {id:2, name:'Bilal Hardware', phone:'03001234567', type:'Dena', amount:7200, note:'Cement and tools purchased on account.', entries:[
+    {type:'Received', amount:7200, note:'Material borrowed', date:'18 Aug'}
+  ]},
+  {id:3, name:'Sana Fabrics', phone:'', type:'Lena', amount:6500, note:'', entries:[]}
+];
+let nextId = 4;
+let history = ['login'];
+let currentKhataId = null;
+let editingKhataId = null;
+let selectedKhataType = 'Lena';
+let selectedEntryType = 'Received';
+
+function resizeDevice() { const device = document.querySelector('.device'); if(device) { const scale = Math.min(1.0, (window.innerHeight * 0.9) / 926); device.style.transform = 'scale(' + scale + ')'; } } window.addEventListener('resize', resizeDevice); resizeDevice();
+function go(screenName, push=true){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelector('[data-screen="'+screenName+'"]').classList.add('active');
+  if(push) history.push(screenName);
+  if(screenName==='home'){ renderHome(); }
+  if(screenName==='profile'){ /* static */ }
+}
+function back(){
+  history.pop();
+  const prev = history[history.length-1] || 'login';
+  go(prev, false);
+}
+
+function validEmail(v){ return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim()); }
+
+function doLogin(){
+  const email = document.getElementById('login-email').value;
+  const pass = document.getElementById('login-password').value;
+  let ok = true;
+  document.getElementById('login-email-err').style.display = validEmail(email) ? 'none' : (ok=false, 'block');
+  document.getElementById('login-password-err').style.display = pass.length>0 ? 'none' : (ok=false, 'block');
+  if(!ok) return;
+  history = ['login'];
+  go('home');
+}
+function doRegister(){
+  const name = document.getElementById('reg-name').value;
+  const email = document.getElementById('reg-email').value;
+  const pass = document.getElementById('reg-password').value;
+  let ok = true;
+  document.getElementById('reg-name-err').style.display = name.trim().length>=2 ? 'none' : (ok=false,'block');
+  document.getElementById('reg-email-err').style.display = validEmail(email) ? 'none' : (ok=false,'block');
+  document.getElementById('reg-password-err').style.display = pass.length>=6 ? 'none' : (ok=false,'block');
+  if(!ok) return;
+  history = ['login'];
+  go('home');
+}
+function signOut(){
+  history = [];
+  go('login');
+}
+
+function fmt(n){ return 'PKR ' + Number(n).toLocaleString('en-PK'); }
+
+function renderHome(){
+  const lena = khataList.filter(k=>k.type==='Lena').reduce((s,k)=>s+k.amount,0);
+  const dena = khataList.filter(k=>k.type==='Dena').reduce((s,k)=>s+k.amount,0);
+  document.getElementById('total-lena').textContent = fmt(lena);
+  document.getElementById('total-dena').textContent = fmt(dena);
+  const list = document.getElementById('khata-list');
+  list.innerHTML = '';
+  if(khataList.length===0){
+    list.innerHTML = '<div style="text-align:center; color:var(--gray-text); padding:30px 0;">No records</div>';
+    return;
+  }
+  khataList.forEach(k=>{
+    const isLena = k.type==='Lena';
+    const row = document.createElement('div');
+    row.className = 'khata-row';
+    row.onclick = ()=>openDetails(k.id);
+    row.innerHTML = `
+      <div class="avatar" style="background:${isLena?'var(--green-wash)':'var(--red-wash)'}; color:${isLena?'var(--green)':'#C7473D'};"><span style="margin-top:-2px;">${k.name.trim()[0].toUpperCase()}</span></div>
+      <div style="flex:1;">
+        <div style="font-weight:700; font-size:16px;">${k.name}</div>
+        <div style="font-size:13px; color:var(--gray-text); margin-top:2px;">${isLena?'You will receive':'You will pay'} · ${fmt(k.amount)}</div>
+      </div>
+      <div style="color:#80918A; font-size:22px;">›</div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function openDetails(id){
+  currentKhataId = id;
+  const k = khataList.find(x=>x.id===id);
+  const isLena = k.type==='Lena';
+  document.getElementById('d-avatar').textContent = k.name.trim()[0].toUpperCase();
+  document.getElementById('d-avatar').style.background = isLena?'var(--green-wash)':'var(--red-wash)';
+  document.getElementById('d-avatar').style.color = isLena?'var(--green)':'#C7473D';
+  document.getElementById('d-name').textContent = k.name;
+  document.getElementById('d-type').textContent = k.type;
+  document.getElementById('d-type').style.color = isLena? 'green':'red';
+  document.getElementById('d-phone').textContent = k.phone || 'No phone number';
+  document.getElementById('d-balance-label').textContent = isLena? 'Balance to receive':'Balance to pay';
+  document.getElementById('d-amount').textContent = fmt(k.amount) + '.00';
+  document.getElementById('d-note').textContent = k.note || 'No note added';
+  const entriesBox = document.getElementById('d-entries');
+  if(k.entries.length===0){
+    entriesBox.innerHTML = '<div style="color:var(--gray-text); text-align:center; padding:10px 0;">No entries yet</div>';
+  } else {
+    entriesBox.innerHTML = k.entries.map(e=>{
+      const label = e.type==='Received' ? (isLena?'Received from customer':'Borrowed from customer') : (isLena?'Given to customer':'Paid to customer');
+      return `<div style="padding:8px 0; border-bottom:1px solid #eee; font-size:13px;">
+        <div><b>${fmt(e.amount)}</b> — ${label}</div>
+        <div style="color:var(--gray-text); font-size:12px;">${e.date}${e.note? ' · '+e.note:''}</div>
+      </div>`;
+    }).join('');
+  }
+  go('details');
+}
+
+function deleteKhata(){
+  if(!confirm('Delete this khata record? This action will not reverse.')) return;
+  khataList = khataList.filter(k=>k.id!==currentKhataId);
+  go('home', false);
+  history.pop(); history.pop(); history.push('home');
+  renderHome();
+}
+
+function openAddKhata(){
+  editingKhataId = null;
+  document.getElementById('ak-title').textContent = 'Add Khata';
+  document.getElementById('ak-save-label').textContent = 'Save khata';
+  document.getElementById('ak-name').value = '';
+  document.getElementById('ak-amount').value = '';
+  document.getElementById('ak-phone').value = '';
+  document.getElementById('ak-note').value = '';
+  document.getElementById('ak-err').style.display = 'none';
+  setKhataType('Lena');
+  go('addkhata');
+}
+function openEditKhata(){
+  const k = khataList.find(x=>x.id===currentKhataId);
+  editingKhataId = k.id;
+  document.getElementById('ak-title').textContent = 'Edit Khata';
+  document.getElementById('ak-save-label').textContent = 'Update khata';
+  document.getElementById('ak-name').value = k.name;
+  document.getElementById('ak-amount').value = k.amount;
+  document.getElementById('ak-phone').value = k.phone;
+  document.getElementById('ak-note').value = k.note;
+  document.getElementById('ak-err').style.display = 'none';
+  setKhataType(k.type);
+  go('addkhata');
+}
+function cancelKhataForm(){
+  go(editingKhataId ? 'details' : 'home');
+}
+function setKhataType(t){
+  selectedKhataType = t;
+  document.getElementById('ak-radio-lena').classList.toggle('checked', t==='Lena');
+  document.getElementById('ak-radio-dena').classList.toggle('checked', t==='Dena');
+}
+function saveKhata(){
+  const name = document.getElementById('ak-name').value.trim();
+  const amount = parseFloat(document.getElementById('ak-amount').value);
+  const phone = document.getElementById('ak-phone').value.trim();
+  const note = document.getElementById('ak-note').value.trim();
+  if(!name || isNaN(amount) || amount<=0){
+    document.getElementById('ak-err').style.display = 'block';
+    return;
+  }
+  document.getElementById('ak-err').style.display = 'none';
+  if(editingKhataId){
+    const k = khataList.find(x=>x.id===editingKhataId);
+    k.name=name; k.amount=amount; k.phone=phone; k.note=note; k.type=selectedKhataType;
+    go('details', false); history.pop(); openDetails(editingKhataId);
+  } else {
+    khataList.push({id:nextId++, name, phone, type:selectedKhataType, amount, note, entries:[]});
+    go('home');
+  }
+}
+
+function openAddEntry(){
+  document.getElementById('ae-amount').value = '';
+  document.getElementById('ae-note').value = '';
+  document.getElementById('ae-err').style.display = 'none';
+  setEntryType('Received');
+  go('addentry');
+}
+function setEntryType(t){
+  selectedEntryType = t;
+  document.getElementById('ae-radio-received').classList.toggle('checked', t==='Received');
+  document.getElementById('ae-radio-given').classList.toggle('checked', t==='Given');
+}
+function saveEntry(){
+  const amount = parseFloat(document.getElementById('ae-amount').value);
+  const note = document.getElementById('ae-note').value.trim();
+  if(isNaN(amount) || amount<=0){
+    document.getElementById('ae-err').style.display = 'block';
+    return;
+  }
+  const k = khataList.find(x=>x.id===currentKhataId);
+  k.entries.unshift({type:selectedEntryType, amount, note, date:'Today'});
+  go('details', false); history.pop(); openDetails(currentKhataId);
+}
+
+renderHome();
+</script>
+</body>
+</html>
+
+
+

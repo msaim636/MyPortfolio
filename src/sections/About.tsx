@@ -45,12 +45,12 @@ export default function About() {
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="group w-full max-w-[280px] sm:max-w-sm aspect-[4/5] bg-ink/5 overflow-hidden flex items-center justify-center"
+              className="group w-full max-w-[280px] sm:max-w-xs lg:max-w-[320px] aspect-[4/5] bg-ink/5 overflow-hidden flex items-center justify-center"
             >
               <img 
                 src="/saim-bg.png" 
                 alt="Saim" 
-                className="w-full h-full object-cover object-top grayscale opacity-80 mix-blend-multiply transition-transform duration-700 ease-out scale-100" 
+                className="w-full h-full object-cover object-top grayscale opacity-80 mix-blend-multiply transition-transform duration-700 ease-out scale-100 group-hover:scale-95" 
               />
             </motion.div>
           </div>
@@ -58,7 +58,7 @@ export default function About() {
           {/* Bottom Right: Core Stack */}
           <div className="flex flex-col justify-between h-full relative">
             <div className="border-t border-line pt-10">
-              <div className="flex items-center gap-2 mb-6">
+              <div className="flex items-center gap-2 mb-4">
                 <div className="w-1.5 h-1.5 bg-accent rounded-full" />
                 <span className="font-body text-xs font-bold uppercase tracking-widest text-accent">Core Stack</span>
               </div>
@@ -67,7 +67,7 @@ export default function About() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="font-display font-black uppercase tracking-tighter text-ink leading-none mb-4 text-3xl sm:text-4xl md:text-5xl"
+                className="font-display font-black uppercase tracking-tighter text-ink leading-none mb-3 text-3xl sm:text-4xl md:text-5xl"
               >
                 Orbiting The <br/> <span className="text-muted">Ecosystem</span>
               </motion.h3>
@@ -83,8 +83,8 @@ export default function About() {
               </motion.p>
             </div>
 
-            <div className="w-full overflow-hidden relative z-0 mt-auto md:-ml-8 lg:-ml-16">
-              <div className="transform origin-bottom lg:-mb-12 -mt-6 lg:-mt-12">
+            <div className="w-full overflow-hidden relative z-0 mt-auto md:-ml-8 lg:-ml-12">
+              <div className="transform origin-bottom lg:-mb-10 -mt-8 lg:-mt-16">
                  <TechOrbit />
               </div>
             </div>

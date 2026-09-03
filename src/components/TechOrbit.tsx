@@ -256,7 +256,7 @@ export default function TechOrbit() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] aspect-square select-none mx-auto -mt-6 lg:-mt-12 overflow-hidden"
+      className="relative w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[420px] aspect-square select-none mx-auto overflow-hidden"
       aria-hidden="true"
     >
       <Canvas orthographic camera={{ position: [0, 0, 500] }} shadows>

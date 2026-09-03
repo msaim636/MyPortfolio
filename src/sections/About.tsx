@@ -50,7 +50,7 @@ export default function About() {
               <img 
                 src="/saim-bg.png" 
                 alt="Saim" 
-                className="w-full h-full object-cover object-center grayscale opacity-80 mix-blend-multiply transition-transform duration-700 ease-out scale-[0.95] group-hover:scale-[0.90]" 
+                className="w-full h-full object-cover object-top grayscale opacity-80 mix-blend-multiply transition-transform duration-700 ease-out scale-100" 
               />
             </motion.div>
           </div>
@@ -84,7 +84,7 @@ export default function About() {
             </div>
 
             <div className="w-full overflow-hidden relative z-0 mt-auto md:-ml-8 lg:-ml-16">
-              <div className="transform origin-bottom lg:-mb-16 -mt-4 lg:-mt-8">
+              <div className="transform origin-bottom lg:-mb-12 -mt-6 lg:-mt-12">
                  <TechOrbit />
               </div>
             </div>

@@ -77,7 +77,7 @@ export default function About() {
                   My workflow revolves around building robust, scalable, and beautifully animated cross-platform experiences.
                 </motion.p>
 
-                <div className="w-full overflow-hidden relative z-0 mt-4 md:-mt-4 lg:mt-0 md:-ml-8 lg:-ml-16">
+                <div className="w-full overflow-hidden relative z-0 mt-4 md:-mt-6 lg:-mt-8 md:-ml-8 lg:-ml-16">
                   <TechOrbit />
                 </div>
               </div>

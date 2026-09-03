@@ -83,7 +83,7 @@ export default function About() {
               </motion.p>
             </div>
 
-            <div className="w-full overflow-hidden relative z-0 mt-auto md:-ml-8 lg:-ml-12">
+            <div className="w-full overflow-hidden relative z-0 mt-auto md:-ml-12 lg:-ml-20">
               <div className="transform origin-bottom lg:-mb-10 -mt-8 lg:-mt-16">
                  <TechOrbit />
               </div>

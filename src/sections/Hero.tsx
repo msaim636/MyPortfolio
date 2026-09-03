@@ -19,10 +19,22 @@ export default function Hero() {
   return (
     <section 
       id="top" 
-      className="relative overflow-hidden pt-24 pb-16 md:pt-44 md:pb-32 min-h-[85vh] flex items-center"
+      className="relative overflow-hidden pt-24 pb-16 md:pt-44 md:pb-32 min-h-[90vh] flex items-center"
       style={{ backgroundColor: "#BD4403" }}
     >
-      {/* Background image - only show on large screens */}
+      {/* Background image - low opacity on mobile, full on desktop */}
+      <div 
+        className="absolute inset-0 bg-no-repeat opacity-20 md:opacity-100" 
+        style={{ 
+          backgroundImage: "url('/saim-bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
+          WebkitMaskImage: "linear-gradient(to bottom, black 50%, transparent)",
+          maskImage: "linear-gradient(to bottom, black 50%, transparent)"
+        }} 
+      />
+      
+      {/* Desktop-specific overrides for background via a second div so we don't fight inline styles */}
       <div 
         className="absolute inset-0 bg-no-repeat hidden md:block" 
         style={{ 
@@ -38,7 +50,7 @@ export default function Hero() {
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-paper to-transparent pointer-events-none z-0" />
 
       <div className="container-px w-full relative z-10">
-        <motion.div variants={container} initial="hidden" animate="show" className="max-w-lg md:max-w-xl">
+        <motion.div variants={container} initial="hidden" animate="show" className="max-w-lg md:max-w-xl relative">
           <motion.h2 
             variants={item} 
             className="text-4xl md:text-5xl lg:text-6xl tracking-wide mb-3 drop-shadow-md"
@@ -56,7 +68,7 @@ export default function Hero() {
             <span className="text-white/90">DEVELOPER</span>
           </motion.h1>
 
-          <motion.p variants={item} className="mt-5 font-body text-sm md:text-base leading-relaxed text-white/90 max-w-[280px] sm:max-w-sm md:max-w-md">
+          <motion.p variants={item} className="mt-5 font-body text-sm md:text-base leading-relaxed text-white/90 max-w-[280px] sm:max-w-sm md:max-w-md drop-shadow-sm">
             Hi, I'm Saim, a Flutter Developer passionate about creating intuitive and visually engaging mobile applications. I specialize in building scalable apps using Dart and Supabase.
           </motion.p>
 
@@ -71,7 +83,7 @@ export default function Hero() {
             <a
               href="#contact"
               onClick={scrollTo("#contact")}
-              className="border border-white px-5 py-3 font-body text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-orange-600"
+              className="border border-white px-5 py-3 font-body text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-orange-600 bg-black/10 backdrop-blur-sm"
             >
               Let's Talk
             </a>

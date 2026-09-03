@@ -150,7 +150,7 @@ function OrbitSystem({ mouseTilt, reducedMotion }: any) {
     }
     
     if (gitRef.current) {
-      const angle = (120 * Math.PI) / 180 - (reducedMotion ? 0 : t * 0.3);
+      const angle = (120 * Math.PI) / 180 + (reducedMotion ? 0 : t * 0.3);
       gitRef.current.position.x = Math.cos(angle) * 155;
       gitRef.current.position.y = Math.sin(angle) * 155;
       gitRef.current.rotation.x = THREE.MathUtils.degToRad(62 - currentTilt.current.x);
@@ -169,15 +169,15 @@ function OrbitSystem({ mouseTilt, reducedMotion }: any) {
   return (
     <>
       <group ref={groupRef}>
-        <mesh position={[0, 0, -2]}>
+        <mesh position={[0, 0, 0]}>
           <torusGeometry args={[105, 0.5, 8, 64]} />
           <meshBasicMaterial color="#FF4B1F" transparent opacity={0.6} />
         </mesh>
-        <mesh position={[0, 0, -2]}>
+        <mesh position={[0, 0, 0]}>
           <torusGeometry args={[155, 0.5, 8, 64]} />
           <meshBasicMaterial color="#FF4B1F" transparent opacity={0.6} />
         </mesh>
-        <mesh position={[0, 0, -2]}>
+        <mesh position={[0, 0, 0]}>
           <torusGeometry args={[205, 0.5, 8, 64]} />
           <meshBasicMaterial color="#FF4B1F" transparent opacity={0.6} />
         </mesh>
@@ -192,17 +192,17 @@ function OrbitSystem({ mouseTilt, reducedMotion }: any) {
         </group>
 
         <group ref={dartRef}>
-          <Float speed={4} rotationIntensity={0.5} floatIntensity={1}>
+          <Float speed={2} rotationIntensity={0.5} floatIntensity={0.1}>
             <Svg3D svgString={DART_SVG} scale={0.3} depth={12} />
           </Float>
         </group>
         <group ref={gitRef}>
-          <Float speed={4} rotationIntensity={0.5} floatIntensity={1}>
+          <Float speed={2} rotationIntensity={0.5} floatIntensity={0.1}>
             <Git3D scale={1.5} />
           </Float>
         </group>
         <group ref={flutterRef}>
-          <Float speed={4} rotationIntensity={0.5} floatIntensity={1}>
+          <Float speed={2} rotationIntensity={0.5} floatIntensity={0.1}>
             <Svg3D svgString={FLUTTER_SVG} scale={1.35} depth={2.5} />
           </Float>
         </group>

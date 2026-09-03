@@ -45,12 +45,12 @@ export default function About() {
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="group w-full max-w-[280px] sm:max-w-sm aspect-[4/5] bg-ink/5 overflow-hidden"
+              className="group w-full max-w-[280px] sm:max-w-sm aspect-[4/5] bg-ink/5 overflow-hidden flex items-center justify-center"
             >
               <img 
                 src="/saim-bg.png" 
                 alt="Saim" 
-                className="w-full h-full object-cover object-center grayscale opacity-80 mix-blend-multiply transition-transform duration-700 ease-out scale-110 group-hover:scale-100" 
+                className="w-full h-full object-cover object-center grayscale opacity-80 mix-blend-multiply transition-transform duration-700 ease-out scale-[0.95] group-hover:scale-[0.90]" 
               />
             </motion.div>
           </div>
@@ -84,7 +84,7 @@ export default function About() {
             </div>
 
             <div className="w-full overflow-hidden relative z-0 mt-auto md:-ml-8 lg:-ml-16">
-              <div className="transform origin-bottom lg:-mb-12">
+              <div className="transform origin-bottom lg:-mb-16 -mt-4 lg:-mt-8">
                  <TechOrbit />
               </div>
             </div>

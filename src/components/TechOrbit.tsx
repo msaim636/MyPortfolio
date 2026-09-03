@@ -169,42 +169,49 @@ function OrbitSystem({ mouseTilt, reducedMotion }: any) {
   return (
     <>
       <group ref={groupRef}>
-        <mesh position={[0, 0, 0]}>
-          <torusGeometry args={[105, 0.5, 8, 64]} />
-          <meshBasicMaterial color="#FF4B1F" transparent opacity={0.6} />
-        </mesh>
-        <mesh position={[0, 0, 0]}>
-          <torusGeometry args={[155, 0.5, 8, 64]} />
-          <meshBasicMaterial color="#FF4B1F" transparent opacity={0.6} />
-        </mesh>
-        <mesh position={[0, 0, 0]}>
-          <torusGeometry args={[205, 0.5, 8, 64]} />
-          <meshBasicMaterial color="#FF4B1F" transparent opacity={0.6} />
-        </mesh>
+        <group rotation={[0.1, 0.05, 0]}>
+          <mesh position={[0, 0, 0]}>
+            <torusGeometry args={[105, 0.5, 8, 64]} />
+            <meshBasicMaterial color="#FF4B1F" transparent opacity={0.6} />
+          </mesh>
+          <group ref={dartRef}>
+            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.1}>
+              <Svg3D svgString={DART_SVG} scale={0.3} depth={12} />
+            </Float>
+          </group>
+        </group>
+
+        <group rotation={[-0.15, -0.05, 0]}>
+          <mesh position={[0, 0, 0]}>
+            <torusGeometry args={[155, 0.5, 8, 64]} />
+            <meshBasicMaterial color="#FF4B1F" transparent opacity={0.6} />
+          </mesh>
+          <group ref={gitRef}>
+            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.1}>
+              <Git3D scale={1.5} />
+            </Float>
+          </group>
+        </group>
+
+        <group rotation={[0.05, 0.15, 0]}>
+          <mesh position={[0, 0, 0]}>
+            <torusGeometry args={[205, 0.5, 8, 64]} />
+            <meshBasicMaterial color="#FF4B1F" transparent opacity={0.6} />
+          </mesh>
+          <group ref={flutterRef}>
+            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.1}>
+              <Svg3D svgString={FLUTTER_SVG} scale={1.35} depth={2.5} />
+            </Float>
+          </group>
+        </group>
 
         <group ref={centerRef}>
-          <Sphere args={[52, 64, 64]}>
+          <Sphere args={[36, 64, 64]}>
             <meshStandardMaterial color="#1a202c" roughness={0.4} metalness={0.7} />
           </Sphere>
-          <Text position={[0, 0, 53]} fontSize={30} fontWeight="bold" color="white">
+          <Text position={[0, 0, 37]} fontSize={20} fontWeight="bold" color="white">
             SDK
           </Text>
-        </group>
-
-        <group ref={dartRef}>
-          <Float speed={2} rotationIntensity={0.5} floatIntensity={0.1}>
-            <Svg3D svgString={DART_SVG} scale={0.3} depth={12} />
-          </Float>
-        </group>
-        <group ref={gitRef}>
-          <Float speed={2} rotationIntensity={0.5} floatIntensity={0.1}>
-            <Git3D scale={1.5} />
-          </Float>
-        </group>
-        <group ref={flutterRef}>
-          <Float speed={2} rotationIntensity={0.5} floatIntensity={0.1}>
-            <Svg3D svgString={FLUTTER_SVG} scale={1.35} depth={2.5} />
-          </Float>
         </group>
       </group>
     </>
@@ -271,3 +278,4 @@ export default function TechOrbit() {
     </div>
   );
 }
+

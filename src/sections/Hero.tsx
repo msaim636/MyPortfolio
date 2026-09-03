@@ -49,7 +49,7 @@ export default function Hero() {
       {/* Gradient fade */}
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-paper to-transparent pointer-events-none z-0" />
 
-      <div className="container-px w-full relative z-10">
+      <div className="container-px w-full relative z-10 -mt-12 sm:-mt-16 md:-mt-20">
         <motion.div variants={container} initial="hidden" animate="show" className="max-w-lg md:max-w-xl relative">
           <motion.h2 
             variants={item} 

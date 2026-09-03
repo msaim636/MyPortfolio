@@ -51,7 +51,7 @@ export default function About() {
               Turning complex ideas into elegant, high-performance mobile experiences. I believe great software is a seamless blend of robust architecture and pixel-perfect design.
             </motion.p>
 
-            <div className="flex flex-col w-full mt-12 lg:mt-[200px]">
+            <div className="flex flex-col w-full mt-16 lg:mt-[260px]">
               <div className="border-t border-line pt-10">
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-1.5 h-1.5 bg-accent rounded-full" />
@@ -77,7 +77,7 @@ export default function About() {
                   My workflow revolves around building robust, scalable, and beautifully animated cross-platform experiences.
                 </motion.p>
 
-                <div className="w-full overflow-hidden relative z-0 mt-2 md:-mt-8 lg:-mt-12 md:-ml-8 lg:-ml-16">
+                <div className="w-full overflow-hidden relative z-0 mt-4 md:-mt-4 lg:mt-0 md:-ml-8 lg:-ml-16">
                   <TechOrbit />
                 </div>
               </div>

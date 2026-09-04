@@ -130,13 +130,21 @@ function OrbitSystem({ mouseTilt, reducedMotion }: any) {
     }
     
     if (groupRef.current) {
-      groupRef.current.rotation.x = THREE.MathUtils.degToRad(-62 + currentTilt.current.x);
-      groupRef.current.rotation.y = THREE.MathUtils.degToRad(currentTilt.current.y);
+      groupRef.current.rotation.set(
+        THREE.MathUtils.degToRad(-62 + currentTilt.current.x),
+        THREE.MathUtils.degToRad(currentTilt.current.y),
+        THREE.MathUtils.degToRad(-6),
+        "XYZ"
+      );
     }
     
     if (centerRef.current) {
-      centerRef.current.rotation.x = THREE.MathUtils.degToRad(62 - currentTilt.current.x);
-      centerRef.current.rotation.y = THREE.MathUtils.degToRad(-currentTilt.current.y);
+      centerRef.current.rotation.set(
+        THREE.MathUtils.degToRad(62 - currentTilt.current.x),
+        THREE.MathUtils.degToRad(-currentTilt.current.y),
+        THREE.MathUtils.degToRad(6),
+        "ZYX"
+      );
     }
     
     const t = state.clock.getElapsedTime();
@@ -145,24 +153,36 @@ function OrbitSystem({ mouseTilt, reducedMotion }: any) {
       const angle = 0 + (reducedMotion ? 0 : t * 0.5);
       dartRef.current.position.x = Math.cos(angle) * 105;
       dartRef.current.position.y = Math.sin(angle) * 105;
-      dartRef.current.rotation.x = THREE.MathUtils.degToRad(62 - currentTilt.current.x);
-      dartRef.current.rotation.y = THREE.MathUtils.degToRad(-currentTilt.current.y) + (reducedMotion ? 0 : t * 2);
+      dartRef.current.rotation.set(
+        THREE.MathUtils.degToRad(62 - currentTilt.current.x),
+        THREE.MathUtils.degToRad(-currentTilt.current.y) + (reducedMotion ? 0 : t * 2),
+        THREE.MathUtils.degToRad(6),
+        "ZYX"
+      );
     }
     
     if (gitRef.current) {
       const angle = (120 * Math.PI) / 180 + (reducedMotion ? 0 : t * 0.3);
       gitRef.current.position.x = Math.cos(angle) * 155;
       gitRef.current.position.y = Math.sin(angle) * 155;
-      gitRef.current.rotation.x = THREE.MathUtils.degToRad(62 - currentTilt.current.x);
-      gitRef.current.rotation.y = THREE.MathUtils.degToRad(-currentTilt.current.y) + (reducedMotion ? 0 : t * 2);
+      gitRef.current.rotation.set(
+        THREE.MathUtils.degToRad(62 - currentTilt.current.x),
+        THREE.MathUtils.degToRad(-currentTilt.current.y) + (reducedMotion ? 0 : t * 2),
+        THREE.MathUtils.degToRad(6),
+        "ZYX"
+      );
     }
     
     if (flutterRef.current) {
       const angle = (240 * Math.PI) / 180 + (reducedMotion ? 0 : t * 0.2);
       flutterRef.current.position.x = Math.cos(angle) * 205;
       flutterRef.current.position.y = Math.sin(angle) * 205;
-      flutterRef.current.rotation.x = THREE.MathUtils.degToRad(62 - currentTilt.current.x);
-      flutterRef.current.rotation.y = THREE.MathUtils.degToRad(-currentTilt.current.y) + (reducedMotion ? 0 : t * 2);
+      flutterRef.current.rotation.set(
+        THREE.MathUtils.degToRad(62 - currentTilt.current.x),
+        THREE.MathUtils.degToRad(-currentTilt.current.y) + (reducedMotion ? 0 : t * 2),
+        THREE.MathUtils.degToRad(6),
+        "ZYX"
+      );
     }
   });
 

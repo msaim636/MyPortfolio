@@ -1,5 +1,7 @@
+import { lazy, Suspense } from "react";
 import { motion } from "framer-motion";
-import TechOrbit from "../components/TechOrbit";
+
+const TechOrbit = lazy(() => import("../components/TechOrbit"));
 
 export default function About() {
   return (
@@ -85,7 +87,9 @@ export default function About() {
 
             <div className="w-full overflow-hidden relative z-0 mt-auto md:-ml-12 lg:-ml-20">
               <div className="transform origin-bottom lg:-mb-10 -mt-8 lg:-mt-16">
-                 <TechOrbit />
+                <Suspense fallback={<div className="aspect-square w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[420px] mx-auto" />}>
+                  <TechOrbit />
+                </Suspense>
               </div>
             </div>
           </div>

@@ -2,7 +2,7 @@ import { useEffect, useRef, useMemo, useState } from "react";
 import * as THREE from "three";
 import { SVGLoader } from "three-stdlib";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Sphere, Cylinder, Text, Center, Environment, Float } from "@react-three/drei";
+import { Sphere, Cylinder, Text, Center, Float } from "@react-three/drei";
 
 const DART_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 208 208">
   <path fill="#00c4b3" d="M35.2 34.9l-8.3-8.3v59.7l.1 2.8c0 1.3.2 2.8.7 4.3l65.6 23.1 16.3-7.2-74.4-74.4z"/>
@@ -20,39 +20,39 @@ const FLUTTER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"
 
 function Git3D({ scale = 1, ...props }: any) {
   const color = "#F05032";
-  const materialProps = { color, roughness: 0.15, metalness: 0.4, clearcoat: 1.0, clearcoatRoughness: 0.1 };
+  const materialProps = { color, roughness: 0.2, metalness: 0.3 };
 
   return (
     <group scale={scale} {...props}>
       <Center>
         {/* Center Node */}
-        <Sphere args={[4, 32, 32]} castShadow receiveShadow position={[0, 0, 0]}>
-          <meshPhysicalMaterial {...materialProps} />
+        <Sphere args={[4, 16, 16]} position={[0, 0, 0]}>
+          <meshStandardMaterial {...materialProps} />
         </Sphere>
         {/* Top-Left Node */}
-        <Sphere args={[3.2, 32, 32]} castShadow receiveShadow position={[-10, 10, 0]}>
-          <meshPhysicalMaterial {...materialProps} />
+        <Sphere args={[3.2, 16, 16]} position={[-10, 10, 0]}>
+          <meshStandardMaterial {...materialProps} />
         </Sphere>
         {/* Top-Right Node */}
-        <Sphere args={[3.2, 32, 32]} castShadow receiveShadow position={[10, 10, 0]}>
-          <meshPhysicalMaterial {...materialProps} />
+        <Sphere args={[3.2, 16, 16]} position={[10, 10, 0]}>
+          <meshStandardMaterial {...materialProps} />
         </Sphere>
         {/* Bottom-Left Node */}
-        <Sphere args={[3.2, 32, 32]} castShadow receiveShadow position={[-10, -10, 0]}>
-          <meshPhysicalMaterial {...materialProps} />
+        <Sphere args={[3.2, 16, 16]} position={[-10, -10, 0]}>
+          <meshStandardMaterial {...materialProps} />
         </Sphere>
 
         {/* Top-Left Branch */}
-        <Cylinder args={[1.2, 1.2, 14.14, 16]} castShadow receiveShadow position={[-5, 5, 0]} rotation={[0, 0, Math.PI / 4]}>
-          <meshPhysicalMaterial {...materialProps} />
+        <Cylinder args={[1.2, 1.2, 14.14, 12]} position={[-5, 5, 0]} rotation={[0, 0, Math.PI / 4]}>
+          <meshStandardMaterial {...materialProps} />
         </Cylinder>
         {/* Top-Right Branch */}
-        <Cylinder args={[1.2, 1.2, 14.14, 16]} castShadow receiveShadow position={[5, 5, 0]} rotation={[0, 0, -Math.PI / 4]}>
-          <meshPhysicalMaterial {...materialProps} />
+        <Cylinder args={[1.2, 1.2, 14.14, 12]} position={[5, 5, 0]} rotation={[0, 0, -Math.PI / 4]}>
+          <meshStandardMaterial {...materialProps} />
         </Cylinder>
         {/* Bottom-Left Branch */}
-        <Cylinder args={[1.2, 1.2, 14.14, 16]} castShadow receiveShadow position={[-5, -5, 0]} rotation={[0, 0, -Math.PI / 4]}>
-          <meshPhysicalMaterial {...materialProps} />
+        <Cylinder args={[1.2, 1.2, 14.14, 12]} position={[-5, -5, 0]} rotation={[0, 0, -Math.PI / 4]}>
+          <meshStandardMaterial {...materialProps} />
         </Cylinder>
       </Center>
     </group>
@@ -70,7 +70,6 @@ function Svg3D({ svgString, depth = 3, scale = 1, layerSpacing = 0, ...props }: 
     });
   }, [svgString]);
 
-  // Very sharp, premium bevel
   const bevelThickness = 0.5 / scale;
   const bevelSize = 0.5 / scale;
 
@@ -78,23 +77,21 @@ function Svg3D({ svgString, depth = 3, scale = 1, layerSpacing = 0, ...props }: 
     <group scale={[scale, -scale, scale]} {...props}>
       <Center>
         {shapesData.map((d, i) => (
-          <mesh key={i} castShadow receiveShadow position={[0, 0, i * layerSpacing]}>
+          <mesh key={i} position={[0, 0, i * layerSpacing]}>
             <extrudeGeometry 
               args={[d.shapes, { 
                 depth, 
                 bevelEnabled: true, 
                 bevelThickness, 
                 bevelSize, 
-                bevelSegments: 6, 
-                curveSegments: 32 
+                bevelSegments: 2, 
+                curveSegments: 12 
               }]} 
             />
-            <meshPhysicalMaterial 
+            <meshStandardMaterial 
               color={d.color} 
-              roughness={0.15} 
-              metalness={0.4} 
-              clearcoat={1.0}
-              clearcoatRoughness={0.1}
+              roughness={0.25} 
+              metalness={0.3} 
             />
           </mesh>
         ))}
@@ -200,7 +197,7 @@ function OrbitSystem({ mouseTilt, reducedMotion }: any) {
         </group>
 
         <group ref={centerRef}>
-          <Sphere args={[48, 64, 64]}>
+          <Sphere args={[48, 36, 36]}>
             <meshStandardMaterial color="#1a202c" roughness={0.4} metalness={0.7} />
           </Sphere>
           <Text position={[0, 0, 49]} fontSize={28} fontWeight="bold" color="white">
@@ -216,6 +213,7 @@ export default function TechOrbit() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mouseTilt = useRef({ x: 0, y: 0 });
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -223,6 +221,20 @@ export default function TechOrbit() {
     const onChange = () => setReducedMotion(mq.matches);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -260,12 +272,17 @@ export default function TechOrbit() {
       className="relative w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[420px] aspect-square select-none mx-auto overflow-hidden"
       aria-hidden="true"
     >
-      <Canvas orthographic camera={{ position: [0, 0, 500] }} shadows>
+      <Canvas 
+        orthographic 
+        camera={{ position: [0, 0, 500] }}
+        dpr={[1, 1.5]}
+        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+        frameloop={isVisible ? "always" : "never"}
+      >
         <ResponsiveCamera />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 20, 30]} intensity={1.5} castShadow />
-        <directionalLight position={[-10, -20, -30]} intensity={0.5} />
-        <Environment preset="city" />
+        <ambientLight intensity={0.9} />
+        <directionalLight position={[15, 25, 30]} intensity={1.8} />
+        <directionalLight position={[-15, -20, -10]} intensity={0.6} color="#FFD166" />
         
         <OrbitSystem mouseTilt={mouseTilt} reducedMotion={reducedMotion} />
       </Canvas>

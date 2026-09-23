@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useVelocity, useTransform } from "framer-motion";
 
 export default function CustomCursor() {
@@ -7,22 +7,22 @@ export default function CustomCursor() {
   const [isClicked, setIsClicked] = useState(false);
   const [isText, setIsText] = useState(false);
   const [hasMouse, setHasMouse] = useState(false);
+  const [clickRipples, setClickRipples] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const rippleIdRef = useRef(0);
 
-  // Raw mouse coordinates
-  const rawX = useMotionValue(-100);
-  const rawY = useMotionValue(-100);
-
-  // High responsiveness spring with subtle physical weight
-  const cursorX = useSpring(rawX, { damping: 28, stiffness: 650, mass: 0.12 });
-  const cursorY = useSpring(rawY, { damping: 28, stiffness: 650, mass: 0.12 });
+  // Raw mouse coordinates - direct 1:1 hardware tracking (0ms latency for pixel-perfect clicking)
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
 
   // Velocity-based micro tilt for organic 3D movement
-  const velocityX = useVelocity(rawX);
-  const tilt = useTransform(velocityX, [-1500, 0, 1500], [-8, 0, 8]);
-  const smoothTilt = useSpring(tilt, { damping: 20, stiffness: 250 });
+  const velocityX = useVelocity(cursorX);
+  
+  // Subtle 3D dynamic tilt based on mouse velocity
+  const tiltX = useTransform(velocityX, [-2000, 0, 2000], [-10, 0, 10]);
+  const smoothTilt = useSpring(tiltX, { damping: 25, stiffness: 350 });
 
   useEffect(() => {
-    // Only enable on desktop/laptops with fine pointers (mouse/trackpad)
+    // Only enable on desktop/laptop devices with fine pointer (mouse/trackpad)
     const mediaQuery = window.matchMedia("(pointer: fine)");
     setHasMouse(mediaQuery.matches);
 
@@ -33,20 +33,14 @@ export default function CustomCursor() {
 
     if (!mediaQuery.matches) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      rawX.set(e.clientX);
-      rawY.set(e.clientY);
-      if (!isVisible) setIsVisible(true);
-    };
+    const checkInteractive = (target: HTMLElement | null) => {
+      if (!target) {
+        setIsHovered(false);
+        setIsText(false);
+        return;
+      }
 
-    const handleMouseDown = () => setIsClicked(true);
-    const handleMouseUp = () => setIsClicked(false);
-
-    const handleMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target) return;
-
-      const isInput = target.closest("input, textarea, [contenteditable='true']");
+      const isInput = target.closest("input, textarea, select, [contenteditable='true']");
       if (isInput) {
         setIsText(true);
         setIsHovered(false);
@@ -55,20 +49,74 @@ export default function CustomCursor() {
       setIsText(false);
 
       const isInteractive = target.closest(
-        "a, button, [role='button'], input[type='submit'], .cursor-pointer, [data-cursor-hover]"
+        "a, button, [role='button'], input[type='submit'], .cursor-pointer, [data-cursor-hover], summary"
       );
       setIsHovered(!!isInteractive);
     };
 
+    const handleMouseMove = (e: MouseEvent) => {
+      // Boundary check: ensure cursor stays inside viewport
+      if (
+        e.clientX <= 0 ||
+        e.clientY <= 0 ||
+        e.clientX >= window.innerWidth - 1 ||
+        e.clientY >= window.innerHeight - 1
+      ) {
+        setIsVisible(false);
+        return;
+      }
+
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
+      if (!isVisible) setIsVisible(true);
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      setIsClicked(true);
+      // Create a subtle 3D click pulse at tip
+      const id = ++rippleIdRef.current;
+      setClickRipples((prev) => [...prev.slice(-3), { id, x: e.clientX, y: e.clientY }]);
+      setTimeout(() => {
+        setClickRipples((prev) => prev.filter((r) => r.id !== id));
+      }, 450);
+    };
+
+    const handleMouseUp = () => {
+      setIsClicked(false);
+    };
+
+    const handleMouseOver = (e: MouseEvent) => {
+      checkInteractive(e.target as HTMLElement | null);
+    };
+
+    // Keep hover detection accurate when user scrolls under mouse
+    const handleScroll = () => {
+      const x = cursorX.get();
+      const y = cursorY.get();
+      if (x > 0 && y > 0) {
+        const el = document.elementFromPoint(x, y) as HTMLElement | null;
+        checkInteractive(el);
+      }
+    };
+
+    // Reliable window boundary handling
     const handleMouseLeave = () => setIsVisible(false);
     const handleMouseEnter = () => setIsVisible(true);
+    const handleBlur = () => {
+      setIsVisible(false);
+      setIsClicked(false);
+      setIsHovered(false);
+    };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
     window.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("mouseover", handleMouseOver);
+    document.addEventListener("mouseover", handleMouseOver, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
     document.documentElement.addEventListener("mouseleave", handleMouseLeave);
     document.documentElement.addEventListener("mouseenter", handleMouseEnter);
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("visibilitychange", handleBlur);
 
     return () => {
       mediaQuery.removeEventListener("change", onMediaChange);
@@ -76,61 +124,81 @@ export default function CustomCursor() {
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
       document.removeEventListener("mouseover", handleMouseOver);
+      window.removeEventListener("scroll", handleScroll);
       document.documentElement.removeEventListener("mouseleave", handleMouseLeave);
       document.documentElement.removeEventListener("mouseenter", handleMouseEnter);
+      window.removeEventListener("blur", handleBlur);
+      document.removeEventListener("visibilitychange", handleBlur);
     };
-  }, [isVisible, rawX, rawY]);
+  }, [isVisible, cursorX, cursorY]);
 
   if (!hasMouse) return null;
 
   return (
     <div
-      className={`pointer-events-none fixed inset-0 z-[99999] transition-opacity duration-200 ${
+      className={`pointer-events-none fixed inset-0 z-[99999] overflow-hidden select-none transition-opacity duration-150 ${
         isVisible && !isText ? "opacity-100" : "opacity-0"
       }`}
       aria-hidden="true"
     >
-      {/* 3D Arrow Container - Aligned exactly at the pointer tip (0, 0) */}
+      {/* Click Impact Ripples */}
+      {clickRipples.map((ripple) => (
+        <motion.div
+          key={ripple.id}
+          initial={{ scale: 0.2, opacity: 0.8 }}
+          animate={{ scale: 1.8, opacity: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          style={{
+            left: ripple.x,
+            top: ripple.y,
+            transform: "translate(-50%, -50%)",
+          }}
+          className="fixed w-7 h-7 rounded-full border border-accent bg-accent/20 pointer-events-none blur-[0.5px]"
+        />
+      ))}
+
+      {/* 3D Arrow Pointer Container - Tip is exactly at (0, 0) */}
       <motion.div
         style={{
           x: cursorX,
           y: cursorY,
-          rotate: isHovered ? -6 : smoothTilt,
+          rotate: isHovered ? -5 : smoothTilt,
         }}
         animate={{
-          scale: isClicked ? 0.88 : isHovered ? 1.16 : 1,
+          scale: isClicked ? 0.9 : isHovered ? 1.15 : 1,
+          translateX: isClicked ? 2 : 0,
           translateY: isClicked ? 3 : 0,
         }}
         transition={{
           type: "spring",
-          damping: 22,
-          stiffness: 400,
-          mass: 0.15,
+          damping: 24,
+          stiffness: 500,
+          mass: 0.1,
         }}
-        className="fixed top-0 left-0 origin-top-left will-change-transform"
+        className="fixed top-0 left-0 origin-top-left pointer-events-none will-change-transform"
       >
-        {/* Interactive Pulse Glow under the tip when hovering clickable items */}
+        {/* Soft interactive accent aura when hovering links/buttons */}
         {isHovered && (
           <motion.div
-            initial={{ scale: 0.4, opacity: 0 }}
-            animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0.2, 0.6] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-1 -left-1 w-6 h-6 rounded-full bg-accent/30 blur-sm pointer-events-none"
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: [1, 1.3, 1], opacity: [0.55, 0.2, 0.55] }}
+            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-1 -left-1 w-7 h-7 rounded-full bg-accent/35 blur-sm pointer-events-none"
           />
         )}
 
-        {/* 3D Clay Arrow Cursor */}
+        {/* 3D Clay Arrow Asset */}
         <img
           src="/cursor-3d.png"
           alt=""
           draggable={false}
-          className="w-9 h-auto select-none pointer-events-none drop-shadow-[0_8px_14px_rgba(226,61,18,0.32)] transition-[filter] duration-200"
+          className="w-8 h-auto select-none pointer-events-none transition-[filter] duration-200"
           style={{
             filter: isHovered
-              ? "drop-shadow(0 12px 18px rgba(255, 75, 31, 0.48)) brightness(1.05)"
+              ? "drop-shadow(0 10px 16px rgba(255, 75, 31, 0.45)) brightness(1.04)"
               : isClicked
-              ? "drop-shadow(0 3px 6px rgba(226, 61, 18, 0.35)) brightness(0.96)"
-              : "drop-shadow(0 7px 12px rgba(226, 61, 18, 0.32))",
+              ? "drop-shadow(0 2px 4px rgba(226, 61, 18, 0.38)) brightness(0.95)"
+              : "drop-shadow(0 6px 10px rgba(226, 61, 18, 0.28))",
           }}
         />
       </motion.div>

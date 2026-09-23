@@ -1,4 +1,5 @@
 import Nav from "./components/Nav";
+import CustomCursor from "./components/CustomCursor";
 import Hero from "./sections/Hero";
 import TrustedBrands from "./sections/TrustedBrands";
 import About from "./sections/About";
@@ -11,6 +12,7 @@ import Footer from "./sections/Footer";
 function App() {
   return (
     <div className="min-h-screen bg-paper">
+      <CustomCursor />
       <Nav />
       <main>
         <Hero />

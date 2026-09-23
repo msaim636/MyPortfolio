@@ -25,12 +25,36 @@
 }
 
 @media (pointer: fine) {
-  body, a, button, [role="button"], select {
+  html, body, *, *::before, *::after {
     cursor: none !important;
   }
-  input, textarea {
+  input, textarea, [contenteditable="true"] {
     cursor: text !important;
   }
+}
+
+@keyframes tipWavePulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.2);
+    opacity: 0;
+  }
+}
+
+.cursor-tip-wave {
+  position: fixed;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  border: 1.5px solid #FF4B1F;
+  box-shadow: 0 0 6px rgba(255, 75, 31, 0.6);
+  pointer-events: none;
+  z-index: 1000000;
+  transform: translate(-50%, -50%) scale(0.2);
+  animation: tipWavePulse 0.35s cubic-bezier(0.1, 0.8, 0.25, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {

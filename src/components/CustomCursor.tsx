@@ -141,23 +141,41 @@ export default function CustomCursor() {
       }`}
       aria-hidden="true"
     >
-      {/* Click Impact Ripples */}
+      {/* Click Impact Waves - Localized strictly at the pinpoint tip */}
       {clickRipples.map((ripple) => (
-        <motion.div
+        <div
           key={ripple.id}
-          initial={{ scale: 0.2, opacity: 0.8 }}
-          animate={{ scale: 1.8, opacity: 0 }}
-          transition={{ duration: 0.45, ease: "easeOut" }}
           style={{
             left: ripple.x,
             top: ripple.y,
-            transform: "translate(-50%, -50%)",
           }}
-          className="fixed w-7 h-7 rounded-full border border-accent bg-accent/20 pointer-events-none blur-[0.5px]"
-        />
+          className="fixed pointer-events-none z-[100000] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+        >
+          {/* Outer crisp micro wave */}
+          <motion.div
+            initial={{ width: 2, height: 2, opacity: 0.95 }}
+            animate={{ width: 22, height: 22, opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="absolute rounded-full border-[1.5px] border-accent"
+          />
+          {/* Inner tight secondary wave */}
+          <motion.div
+            initial={{ width: 1, height: 1, opacity: 0.75 }}
+            animate={{ width: 13, height: 13, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="absolute rounded-full border border-accent/70"
+          />
+          {/* Flash pinpoint spark at the tip */}
+          <motion.div
+            initial={{ scale: 1.8, opacity: 1 }}
+            animate={{ scale: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_6px_#FF4B1F]"
+          />
+        </div>
       ))}
 
-      {/* 3D Arrow Pointer Container - Tip is exactly at (0, 0) */}
+      {/* 3D Arrow Pointer Container - Tip anchored strictly at (0, 0) */}
       <motion.div
         style={{
           x: cursorX,
@@ -165,9 +183,7 @@ export default function CustomCursor() {
           rotate: isHovered ? -5 : smoothTilt,
         }}
         animate={{
-          scale: isClicked ? 0.9 : isHovered ? 1.15 : 1,
-          translateX: isClicked ? 2 : 0,
-          translateY: isClicked ? 3 : 0,
+          scale: isClicked ? 0.92 : isHovered ? 1.14 : 1,
         }}
         transition={{
           type: "spring",
@@ -177,13 +193,13 @@ export default function CustomCursor() {
         }}
         className="fixed top-0 left-0 origin-top-left pointer-events-none will-change-transform"
       >
-        {/* Soft interactive accent aura when hovering links/buttons */}
+        {/* Subtle pinpoint beacon right at the tip when hovering interactive items */}
         {isHovered && (
           <motion.div
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: [1, 1.3, 1], opacity: [0.55, 0.2, 0.55] }}
-            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-1 -left-1 w-7 h-7 rounded-full bg-accent/35 blur-sm pointer-events-none"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: [0.8, 1.25, 0.8], opacity: [0.8, 0.3, 0.8] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-1 -left-1 w-2 h-2 rounded-full bg-accent shadow-[0_0_6px_#FF4B1F] pointer-events-none"
           />
         )}
 

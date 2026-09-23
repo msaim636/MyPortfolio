@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useMotionValue, useSpring, useVelocity, useTransform } from "framer-motion";
 
 export default function CustomCursor() {
   const [isVisible, setIsVisible] = useState(false);
@@ -9,19 +9,20 @@ export default function CustomCursor() {
   const [hasMouse, setHasMouse] = useState(false);
 
   // Raw mouse coordinates
-  const mouseX = useMotionValue(-100);
-  const mouseY = useMotionValue(-100);
+  const rawX = useMotionValue(-100);
+  const rawY = useMotionValue(-100);
 
-  // Outer ring: smooth physics spring
-  const ringX = useSpring(mouseX, { damping: 26, stiffness: 320, mass: 0.5 });
-  const ringY = useSpring(mouseY, { damping: 26, stiffness: 320, mass: 0.5 });
+  // High responsiveness spring with subtle physical weight
+  const cursorX = useSpring(rawX, { damping: 28, stiffness: 650, mass: 0.12 });
+  const cursorY = useSpring(rawY, { damping: 28, stiffness: 650, mass: 0.12 });
 
-  // Inner dot: very tight, responsive spring
-  const dotX = useSpring(mouseX, { damping: 35, stiffness: 1000 });
-  const dotY = useSpring(mouseY, { damping: 35, stiffness: 1000 });
+  // Velocity-based micro tilt for organic 3D movement
+  const velocityX = useVelocity(rawX);
+  const tilt = useTransform(velocityX, [-1500, 0, 1500], [-8, 0, 8]);
+  const smoothTilt = useSpring(tilt, { damping: 20, stiffness: 250 });
 
   useEffect(() => {
-    // Only enable on devices with fine pointer (mouse/trackpad), not touchscreens
+    // Only enable on desktop/laptops with fine pointers (mouse/trackpad)
     const mediaQuery = window.matchMedia("(pointer: fine)");
     setHasMouse(mediaQuery.matches);
 
@@ -33,8 +34,8 @@ export default function CustomCursor() {
     if (!mediaQuery.matches) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+      rawX.set(e.clientX);
+      rawY.set(e.clientY);
       if (!isVisible) setIsVisible(true);
     };
 
@@ -78,76 +79,61 @@ export default function CustomCursor() {
       document.documentElement.removeEventListener("mouseleave", handleMouseLeave);
       document.documentElement.removeEventListener("mouseenter", handleMouseEnter);
     };
-  }, [isVisible, mouseX, mouseY]);
+  }, [isVisible, rawX, rawY]);
 
   if (!hasMouse) return null;
 
   return (
     <div
-      className={`pointer-events-none fixed inset-0 z-[99999] transition-opacity duration-300 ${
+      className={`pointer-events-none fixed inset-0 z-[99999] transition-opacity duration-200 ${
         isVisible && !isText ? "opacity-100" : "opacity-0"
       }`}
       aria-hidden="true"
     >
-      {/* Outer Orbit Ring */}
+      {/* 3D Arrow Container - Aligned exactly at the pointer tip (0, 0) */}
       <motion.div
         style={{
-          x: ringX,
-          y: ringY,
-          translateX: "-50%",
-          translateY: "-50%",
+          x: cursorX,
+          y: cursorY,
+          rotate: isHovered ? -6 : smoothTilt,
         }}
         animate={{
-          width: isHovered ? 52 : isClicked ? 24 : 34,
-          height: isHovered ? 52 : isClicked ? 24 : 34,
-          borderColor: isHovered
-            ? "rgba(255, 75, 31, 0.9)"
-            : "rgba(255, 75, 31, 0.4)",
-          backgroundColor: isHovered
-            ? "rgba(255, 75, 31, 0.08)"
-            : "rgba(255, 75, 31, 0.02)",
-          scale: isClicked ? 0.85 : 1,
+          scale: isClicked ? 0.88 : isHovered ? 1.16 : 1,
+          translateY: isClicked ? 3 : 0,
         }}
         transition={{
           type: "spring",
-          damping: 20,
-          stiffness: 300,
-          mass: 0.3,
-        }}
-        className="fixed rounded-full border border-dashed border-accent flex items-center justify-center backdrop-blur-[0.5px]"
-      >
-        {/* Subtle rotating satellite dot on the ring (theme inspired by "Orbiting the Ecosystem") */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 flex items-center justify-start pointer-events-none"
-        >
-          <div className="w-1 h-1 rounded-full bg-accent -ml-0.5 opacity-70" />
-        </motion.div>
-      </motion.div>
-
-      {/* Inner Core Dot */}
-      <motion.div
-        style={{
-          x: dotX,
-          y: dotY,
-          translateX: "-50%",
-          translateY: "-50%",
-        }}
-        animate={{
-          scale: isClicked ? 0.6 : isHovered ? 1.6 : 1,
-          backgroundColor: isHovered ? "#FF4B1F" : "#FF4B1F",
-          boxShadow: isHovered
-            ? "0 0 12px rgba(255, 75, 31, 0.8)"
-            : "0 0 6px rgba(255, 75, 31, 0.4)",
-        }}
-        transition={{
-          type: "spring",
-          damping: 25,
+          damping: 22,
           stiffness: 400,
+          mass: 0.15,
         }}
-        className="fixed w-2 h-2 rounded-full"
-      />
+        className="fixed top-0 left-0 origin-top-left will-change-transform"
+      >
+        {/* Interactive Pulse Glow under the tip when hovering clickable items */}
+        {isHovered && (
+          <motion.div
+            initial={{ scale: 0.4, opacity: 0 }}
+            animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0.2, 0.6] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-1 -left-1 w-6 h-6 rounded-full bg-accent/30 blur-sm pointer-events-none"
+          />
+        )}
+
+        {/* 3D Clay Arrow Cursor */}
+        <img
+          src="/cursor-3d.png"
+          alt=""
+          draggable={false}
+          className="w-9 h-auto select-none pointer-events-none drop-shadow-[0_8px_14px_rgba(226,61,18,0.32)] transition-[filter] duration-200"
+          style={{
+            filter: isHovered
+              ? "drop-shadow(0 12px 18px rgba(255, 75, 31, 0.48)) brightness(1.05)"
+              : isClicked
+              ? "drop-shadow(0 3px 6px rgba(226, 61, 18, 0.35)) brightness(0.96)"
+              : "drop-shadow(0 7px 12px rgba(226, 61, 18, 0.32))",
+          }}
+        />
+      </motion.div>
     </div>
   );
 }

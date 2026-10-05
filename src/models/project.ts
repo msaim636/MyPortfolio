@@ -1,5 +1,8 @@
 export type ProjectCategory = "Mobile" | "Web" | "Backend";
 
+/**
+ * Optional deployment and repository links associated with a portfolio project.
+ */
 export interface ProjectLinks {
   livePreviewUrl?: string;
   androidApkUrl?: string;
@@ -10,6 +13,9 @@ export interface ProjectLinks {
   interactivePrototypeUrl?: string;
 }
 
+/**
+ * Core portfolio project data model.
+ */
 export interface Project {
   id: string;
   number: string;

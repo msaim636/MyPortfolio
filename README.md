@@ -56,11 +56,17 @@ Each project currently uses a generated abstract SVG cover in `public/projects/`
 demo clips whenever you have them — just point `image` (and optionally `video`)
 in `projects.ts` at the new file.
 
+## Tech Stack
+
+- **Frontend:** React 19, TypeScript, Vite
+- **Styling:** Tailwind CSS, PostCSS
+- **3D & Visuals:** Three.js, `@react-three/fiber`, `@react-three/drei`
+- **Animations:** Framer Motion
+- **Features:** 3D Tech Orbit ecosystem, GPU-accelerated 3D custom cursor, responsive design
+
 ## Notes
 
-- No backend, database, auth, or CMS — everything is static/local data.
-- The hero's Flutter/Dart/Git animation is built with CSS 3D transforms (no
-  Three.js), respects `prefers-reduced-motion`, and supports mouse + touch
-  parallax.
-- Icons for Flutter/Dart/Git are clean vector approximations, not the
-  official brand files — swap in official assets if you have the license to.
+- Pure frontend client architecture deployed seamlessly on Vercel.
+- The 3D Tech Orbit ecosystem showcases Flutter, Dart, and Git with interactive camera tilt and orbital physics.
+- The custom 3D clay arrow cursor features zero-latency direct GPU tracking and pinpoint click wave animations.
+- Fully responsive across desktop, tablet, and mobile with strict touch device detection.

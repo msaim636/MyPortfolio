@@ -1,5 +1,15 @@
 import { useEffect, useRef } from "react";
 
+/**
+ * CustomCursor
+ * 
+ * Hardware-accelerated 3D clay arrow cursor running on a direct GPU
+ * requestAnimationFrame compositor loop. Features:
+ * - 0ms input latency with sub-pixel interpolation
+ * - Automatic fine-pointer detection (disabled on touchscreens)
+ * - Safe boundary detection on blur, tab switch, and window exit
+ * - Isolated pinpoint click micro-shockwaves at cursor apex (0, 0)
+ */
 export default function CustomCursor() {
   const cursorRef = useRef<HTMLDivElement>(null);
   const beaconRef = useRef<HTMLDivElement>(null);

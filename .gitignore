@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary scratch & video assets
+temp-screenshot/
+*.mp4
+test.js
+solar_system_animation.html
+
